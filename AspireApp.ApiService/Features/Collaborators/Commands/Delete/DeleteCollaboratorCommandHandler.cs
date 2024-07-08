@@ -10,7 +10,7 @@ public class DeleteCollaboratorCommandHandler: IRequestHandler<DeleteCollaborato
 
     public DeleteCollaboratorCommandHandler(ICollaboratorRepository repository)
     {
-        this._repository = repository;
+        _repository = repository;
     }
 
     public async Task Handle(DeleteCollaboratorCommand request, CancellationToken cancellationToken)

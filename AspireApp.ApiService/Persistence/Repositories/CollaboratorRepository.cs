@@ -1,4 +1,5 @@
 ﻿using AspireApp.ApiService.Domain;
+using AspireApp.ApiService.Features.Collaborators.Dtos;
 using AspireApp.ApiService.Persistence.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,8 +36,10 @@ public class CollaboratorRepository : ICollaboratorRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Collaborator>> GetAllAsync()
+    public async Task<IEnumerable<CollaboratorDto>> GetAllAsync()
     {
-        return await _context.Collaborators.ToListAsync();
+        return await _context.Collaborators
+            .Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive))
+            .ToListAsync();
     }
 }
