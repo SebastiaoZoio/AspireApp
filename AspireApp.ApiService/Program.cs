@@ -1,25 +1,41 @@
-//using AspireApp.ApiService.Features.Collaborators.Commands.Create;
-//using AspireApp.ApiService.Features.Collaborators.Commands.Delete;
-//using AspireApp.ApiService.Features.Collaborators.Queries.Get;
-//using AspireApp.ApiService.Features.Collaborators.Queries.List;
+using AspireApp.ApiService.Domain;
+using AspireApp.ApiService.Features.Collaborators.Commands.Create;
+using AspireApp.ApiService.Features.Collaborators.Commands.Delete;
+using AspireApp.ApiService.Features.Collaborators.Queries.Get;
+using AspireApp.ApiService.Features.Collaborators.Queries.List;
 using AspireApp.ApiService.Persistence;
+using Google.Protobuf.Compiler;
 using MediatR;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-//builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
+var connection = String.Empty;
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddEnvironmentVariables().AddJsonFile("appsettings.Development.json");
+    connection = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+}
+else
+{
+    connection = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING");
+}
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(connection));
+
 var app = builder.Build();
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 //app.MapGet("/products/{id:guid}", async (Guid id, ISender mediatr) =>
 //{
@@ -34,13 +50,12 @@ var app = builder.Build();
 //    return Results.Ok(products);
 //});
 
-//app.MapPost("/products", async (CreateProductCommand command, IMediator mediatr) =>
-//{
-//    var productId = await mediatr.Send(command);
-//    if (Guid.Empty == productId) return Results.BadRequest();
-//    await mediatr.Publish(new ProductCreatedNotification(productId));
-//    return Results.Created($"/products/{productId}", new { id = productId });
-//});
+app.MapPost("/collaborator", async (CreateCollaboratorCommand command, IMediator mediatr) =>
+{
+    var collaboratorId = await mediatr.Send(command);
+    if (Guid.Empty == collaboratorId) return Results.BadRequest();
+    return Results.Created($"/collaborator/{collaboratorId}", new { id = collaboratorId });
+});
 
 //app.MapDelete("/products/{id:guid}", async (Guid id, ISender mediatr) =>
 //{
