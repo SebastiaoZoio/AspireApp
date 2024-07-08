@@ -3,4 +3,4 @@ using MediatR;
 
 namespace AspireApp.ApiService.Features.Collaborators.Queries.List;
 
-public record ListCollaboratorsQuery : IRequest<List<CollaboratorDto>>;
+public record ListCollaboratorsQuery : IRequest<IEnumerable<CollaboratorDto>>;

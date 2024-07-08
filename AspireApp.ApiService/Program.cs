@@ -67,7 +67,7 @@ app.MapPost("/delete-collaborator/{id:guid}", async (Guid id, ISender mediatr) =
     try
     {
         await mediatr.Send(new DeleteCollaboratorCommand(id));
-        return Results.NoContent();
+        return Results.Ok();
     }
     catch (CollaboratorNotFoundException ex)
     {
