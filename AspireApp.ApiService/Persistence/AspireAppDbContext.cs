@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AspireApp.ApiService.Persistence;
 
-public class AppDbContext : DbContext
+public class AspireAppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    public AspireAppDbContext(DbContextOptions<AspireAppDbContext> options) : base(options)
     {
     }
     public DbSet<Collaborator> Collaborators { get; set; }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AspireApp.ApiService.Migrations
 {
     [DbContext(typeof(AspireAppDbContext))]
-    [Migration("20240707234414_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240708095605_AddedIsActiveToCollaborator")]
+    partial class AddedIsActiveToCollaborator
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,6 +30,9 @@ namespace AspireApp.ApiService.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()

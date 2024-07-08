@@ -1,16 +1,21 @@
 ﻿using AspireApp.ApiService.Domain;
 using MediatR;
 using AspireApp.ApiService.Persistence;
+using AspireApp.ApiService.Persistence.Interfaces;
 
 namespace AspireApp.ApiService.Features.Collaborators.Commands.Create;
 
-public class CreateCollaboratorCommandHandler(AppDbContext context) : IRequestHandler<CreateCollaboratorCommand, Guid>
+public class CreateCollaboratorCommandHandler : IRequestHandler<CreateCollaboratorCommand, Guid>
 {
+    private readonly ICollaboratorRepository _repository;
+    public CreateCollaboratorCommandHandler(ICollaboratorRepository repository)
+    {
+        _repository = repository;
+    }
     public async Task<Guid> Handle(CreateCollaboratorCommand command, CancellationToken cancellationToken)
     {
         var collaborator = new Collaborator(command.Name);
-        await context.Collaborators.AddAsync(collaborator);
-        await context.SaveChangesAsync();
+        await _repository.AddAsync(collaborator);
         return collaborator.Id;
     }
 }
