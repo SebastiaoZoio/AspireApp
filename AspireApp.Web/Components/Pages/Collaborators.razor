@@ -1,0 +1,87 @@
+﻿@page "/collaborators"
+@attribute [StreamRendering(true)]
+@attribute [OutputCache(Duration = 5)]
+
+@inject Services.CollaboratorService CollaboratorService
+@using Services.Models
+
+<PageTitle>Collaborators</PageTitle>
+
+<h1>Collaborators</h1>
+
+@if (collaborators == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>IsActive</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var collaborator in collaborators)
+            {
+                <tr>
+                    <td>@collaborator.Name</td>
+                    <td>@collaborator.IsActive</td>
+                    @* <td>
+                        <button class="btn btn-danger" @onclick="() => RemoveEmployee(collaborator.Id)">Remove</button>
+                    </td> *@
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4>Add Employee</h4>
+<div>
+    <input type="text" @bind="newCollaborator.Name" placeholder="Name" />
+    <button class="btn btn-primary" @onclick="AddCollaborator">Add</button>
+</div>
+
+}
+
+@code {
+    private List<Collaborator> collaborators = new List<Collaborator>();
+    private Collaborator newCollaborator = new Collaborator();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCollaborators();
+    }
+
+    private async Task LoadCollaborators()
+    {
+        collaborators = await CollaboratorService.GetCollaboratorsAsync();
+    }
+
+    private async Task AddCollaborator()
+    {
+        var response = await CollaboratorService.AddCollaboratorAsync(newCollaborator);
+        if (response.IsSuccessStatusCode)
+        {
+            newCollaborator = new Collaborator(); // Reset the new employee form
+            collaborators.Add(newCollaborator); // Reload the list of employees
+        }
+        else
+        {
+            // Handle error
+        }
+    }
+
+    // private async Task RemoveEmployee(int employeeId)
+    // {
+    //     var response = await Http.DeleteAsync($"api/employees/{employeeId}");
+    //     if (response.IsSuccessStatusCode)
+    //     {
+    //         await LoadEmployees(); // Reload the list of employees
+    //     }
+    //     else
+    //     {
+    //         // Handle error
+    //     }
+    // }
+}
