@@ -11,7 +11,9 @@
 
 @if (collaborators == null)
 {
-    <p><em>Loading...</em></p>
+    <div class="d-flex justify-content-center">
+        <Spinner Type="SpinnerType.Border" />
+    </div>
 }
 else
 {
@@ -39,13 +41,13 @@ else
     <h4>Add Employee</h4>
 <div>
     <input type="text" @bind="newCollaborator.Name" placeholder="Name" />
-    <button class="btn btn-primary" @onclick="AddCollaborator">Add</button>
+        <button class="btn btn-primary" @onclick="async () => await AddCollaborator()">Add</button>
 </div>
 
 }
 
 @code {
-    private List<Collaborator> collaborators = new List<Collaborator>();
+    private List<Collaborator> collaborators = null; //new List<Collaborator>();
     private Collaborator newCollaborator = new Collaborator();
 
     protected override async Task OnInitializedAsync()

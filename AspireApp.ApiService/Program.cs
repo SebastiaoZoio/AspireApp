@@ -44,15 +44,15 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/collaborators/{id:guid}", async (Guid id, ISender mediatr) =>
 {
-    var product = await mediatr.Send(new GetCollaboratorQuery(id));
-    if (product == null) return Results.NotFound();
-    return Results.Ok(product);
+    var collaborator = await mediatr.Send(new GetCollaboratorQuery(id));
+    if (collaborator == null) return Results.NotFound();
+    return Results.Ok(collaborator);
 });
 
 app.MapGet("/collaborators", async (ISender mediatr) =>
 {
-    var products = await mediatr.Send(new ListCollaboratorsQuery());
-    return Results.Ok(products);
+    var collaborators = await mediatr.Send(new ListCollaboratorsQuery());
+    return Results.Ok(collaborators);
 });
 
 app.MapPost("/collaborator", async (CreateCollaboratorCommand command, IMediator mediatr) =>
