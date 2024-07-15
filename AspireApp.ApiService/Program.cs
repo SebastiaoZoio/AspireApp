@@ -7,11 +7,10 @@ using AspireApp.ApiService.Features.Collaborators.Queries.List;
 using AspireApp.ApiService.Persistence;
 using AspireApp.ApiService.Persistence.Interfaces;
 using AspireApp.ApiService.Persistence.Repositories;
-using Google.Protobuf.Compiler;
 using MediatR;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,10 +48,16 @@ app.MapGet("/collaborators/{id:guid}", async (Guid id, ISender mediatr) =>
     return Results.Ok(collaborator);
 });
 
-app.MapGet("/collaborators", async (ISender mediatr) =>
+//app.MapGet("/collaborators", async (ISender mediatr) =>
+//{
+//    var collaborators = await mediatr.Send(new GetAllCollaboratorsQuery());
+//    return Results.Ok(collaborators);
+//});
+
+app.MapPost("/list-collaborators", async ([FromBody] ListCollaboratorsQuery query, ISender mediatr) =>
 {
-    var collaborators = await mediatr.Send(new ListCollaboratorsQuery());
-    return Results.Ok(collaborators);
+    var collaboratorsList = await mediatr.Send(query);
+    return Results.Ok(collaboratorsList);
 });
 
 app.MapPost("/collaborator", async (CreateCollaboratorCommand command, IMediator mediatr) =>

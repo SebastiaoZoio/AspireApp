@@ -1,6 +1,7 @@
 ﻿using AspireApp.Web.Components.Configurations;
 using Microsoft.Extensions.Options;
 using AspireApp.Web.Services.Models;
+using System.Net.Http.Json;
 
 namespace AspireApp.Web.Services;
 
@@ -15,11 +16,17 @@ public class CollaboratorService
         _baseUri = settings.Value.BaseUri;
     }
 
-    public async Task<List<Collaborator>> GetCollaboratorsAsync()
-    {
-        var collaborators = await _httpClient.GetFromJsonAsync<List<Collaborator>>($"{_baseUri}collaborators");
-        return collaborators;
-    }        
+    //public async Task<List<Collaborator>> GetCollaboratorsAsync()
+    //{
+    //    var collaborators = await _httpClient.GetFromJsonAsync<List<Collaborator>>($"{_baseUri}collaborators");
+    //    return collaborators;
+    //}
+
+    //public async Task<(IEnumerable<Collaborator>, int)> GetCollaboratorsAsync()
+    //{
+    //    var response = await _httpClient.PostAsJsonAsync($"{_baseUri}list-collaborators", );
+    //    return response;
+    //}
 
     public async Task<HttpResponseMessage> AddCollaboratorAsync(Collaborator Collaborator)
     {
@@ -27,9 +34,9 @@ public class CollaboratorService
         return response;
     }
 
-    public async Task<bool> RemoveCollaboratorAsync(int CollaboratorId)
+    public async Task<HttpResponseMessage> RemoveCollaboratorAsync(Guid CollaboratorId)
     {
         var response = await _httpClient.DeleteAsync($"{_baseUri}collaborators/{CollaboratorId}");
-        return response.IsSuccessStatusCode;
+        return response;
     }
 }

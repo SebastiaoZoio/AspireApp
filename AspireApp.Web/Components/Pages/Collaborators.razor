@@ -5,9 +5,9 @@
 @inject Services.CollaboratorService CollaboratorService
 @using Services.Models
 
-<PageTitle>Collaborators</PageTitle>
+<PageTitle>Colaboradores</PageTitle>
 
-<h1>Collaborators</h1>
+<h1>Colaboradores</h1>
 
 @if (collaborators == null)
 {
@@ -20,8 +20,9 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>Name</th>
+                <th>Nome</th>
                 <th>IsActive</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -30,9 +31,9 @@ else
                 <tr>
                     <td>@collaborator.Name</td>
                     <td>@collaborator.IsActive</td>
-                    @* <td>
-                        <button class="btn btn-danger" @onclick="() => RemoveEmployee(collaborator.Id)">Remove</button>
-                    </td> *@
+                    <td>
+                        <button class="btn btn-danger" @onclick="() => RemoveEmployee(collaborator.Id)">Remover</button>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -41,7 +42,7 @@ else
     <h4>Add Employee</h4>
 <div>
     <input type="text" @bind="newCollaborator.Name" placeholder="Name" />
-        <button class="btn btn-primary" @onclick="async () => await AddCollaborator()">Add</button>
+        <button class="btn btn-primary" @onclick="async () => await AddCollaborator()">Adicionar</button>
 </div>
 
 }
@@ -65,8 +66,9 @@ else
         var response = await CollaboratorService.AddCollaboratorAsync(newCollaborator);
         if (response.IsSuccessStatusCode)
         {
-            newCollaborator = new Collaborator(); // Reset the new employee form
             collaborators.Add(newCollaborator); // Reload the list of employees
+            newCollaborator = new Collaborator(); // Reset the new employee form
+
         }
         else
         {
@@ -74,16 +76,16 @@ else
         }
     }
 
-    // private async Task RemoveEmployee(int employeeId)
-    // {
-    //     var response = await Http.DeleteAsync($"api/employees/{employeeId}");
-    //     if (response.IsSuccessStatusCode)
-    //     {
-    //         await LoadEmployees(); // Reload the list of employees
-    //     }
-    //     else
-    //     {
-    //         // Handle error
-    //     }
-    // }
+    private async Task RemoveEmployee(Guid collaboratorId)
+    {
+        var response = await CollaboratorService.RemoveCollaboratorAsync(collaboratorId); 
+        if (response.IsSuccessStatusCode)
+        {
+            collaborators.Remove(collaborators.FirstOrDefault(c => c.Id == collaboratorId));  // Reload the list of employees
+        }
+        else
+        {
+            // Handle error
+        }
+    }
 }
