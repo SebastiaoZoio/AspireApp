@@ -4,12 +4,13 @@
 
 @inject Services.CollaboratorService CollaboratorService
 @using Services.Models
+@using Services.Requests
 
 <PageTitle>Colaboradores</PageTitle>
 
 <h1>Colaboradores</h1>
 
-@if (collaborators == null)
+@* @if (collaborators == null)
 {
     <div class="d-flex justify-content-center">
         <Spinner Type="SpinnerType.Border" />
@@ -45,7 +46,28 @@ else
         <button class="btn btn-primary" @onclick="async () => await AddCollaborator()">Adicionar</button>
 </div>
 
-}
+} *@
+
+
+<Grid TItem="Collaborator"
+      Class="table table-hover table-bordered table-striped"
+      DataProvider="LoadCollaborators"
+      AllowFiltering="true"
+      AllowPaging="true"
+      AllowSorting="true"
+      Responsive="true">
+
+    <GridColumn TItem="Collaborator" HeaderText="Id" PropertyName="CollaboratorId" SortString="Id" SortKeySelector="item => item.Id" FilterTextboxWidth="50" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+        @context.Id
+    </GridColumn>
+    <GridColumn TItem="Collaborator" HeaderText="Name" PropertyName="CollaboratorName" SortString="Name" SortKeySelector="item => item.Name" FilterTextboxWidth="80">
+        @context.Name
+    </GridColumn>
+    <GridColumn TItem="Collaborator" HeaderText="IsActive" PropertyName="IsActive" SortString="IsActive" Sortable="false" FilterTextboxWidth="50">
+        @context.IsActive
+    </GridColumn>
+
+</Grid>
 
 @code {
     private List<Collaborator> collaborators = null; //new List<Collaborator>();
@@ -53,12 +75,32 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadCollaborators();
+        await LoadCollaborators(new GridDataProviderRequest<Collaborator>());
     }
 
-    private async Task LoadCollaborators()
+    private async Task<GridDataProviderResult<Collaborator>> LoadCollaborators(GridDataProviderRequest<Collaborator> request)
     {
-        collaborators = await CollaboratorService.GetCollaboratorsAsync();
+        string sortString = "";
+        SortDirection sortDirection = SortDirection.None;
+
+        if (request.Sorting is not null && request.Sorting.Any())
+        {
+            // Note: Multi column sorting is not supported at this moment
+            sortString = request.Sorting.FirstOrDefault()!.SortString;
+            sortDirection = request.Sorting.FirstOrDefault()!.SortDirection;
+        }
+
+        var listCollaboratorsRequest = new ListCollaboratorsRequest()
+        {
+            Filters = request.Filters,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            SortString = sortString,
+            SortDirection = sortDirection,
+        };
+
+        var result = await CollaboratorService.GetCollaboratorsAsync(listCollaboratorsRequest);
+        return await Task.FromResult(new GridDataProviderResult<Collaborator> { Data = result.Item1, TotalCount = result.Item2 });
     }
 
     private async Task AddCollaborator()

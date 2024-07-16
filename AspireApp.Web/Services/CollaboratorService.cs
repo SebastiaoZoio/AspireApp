@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Options;
 using AspireApp.Web.Services.Models;
 using System.Net.Http.Json;
+using AspireApp.Web.Services.Requests;
+using Newtonsoft.Json.Linq;
 
 namespace AspireApp.Web.Services;
 
@@ -22,11 +24,25 @@ public class CollaboratorService
     //    return collaborators;
     //}
 
-    //public async Task<(IEnumerable<Collaborator>, int)> GetCollaboratorsAsync()
-    //{
-    //    var response = await _httpClient.PostAsJsonAsync($"{_baseUri}list-collaborators", );
-    //    return response;
-    //}
+    public async Task<(IEnumerable<Collaborator>, int)> GetCollaboratorsAsync(ListCollaboratorsRequest request)
+    {
+        var response = await _httpClient.PostAsJsonAsync($"{_baseUri}list-collaborators", request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Request failed with status code {response.StatusCode}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        var jsonResponse = JObject.Parse(content);
+
+
+        var collaborators = jsonResponse["collaborators"].ToObject<IEnumerable<Collaborator>>();
+        var totalCount = jsonResponse["totalCount"].ToObject<int>();
+
+        return (collaborators, totalCount);
+    }
 
     public async Task<HttpResponseMessage> AddCollaboratorAsync(Collaborator Collaborator)
     {
