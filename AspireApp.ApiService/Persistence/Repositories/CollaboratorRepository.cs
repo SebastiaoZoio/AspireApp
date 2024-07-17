@@ -40,6 +40,13 @@ public class CollaboratorRepository : ICollaboratorRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<IEnumerable<CollaboratorDto>> GetAllAsync()
+    {
+        return await _context.Collaborators
+            .Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive))
+            .ToListAsync();
+    }
+
     public async Task<ListCollaboratorsResponse> ListAsync(IEnumerable<FilterItem> filters, int pageNumber, int pageSize, string sortString, SortDirection sortDirection)
     {
         var query = _context.Collaborators.AsQueryable();
@@ -60,11 +67,17 @@ public class CollaboratorRepository : ICollaboratorRepository
         //        : query.OrderByDescending(c => EF.Property<object>(c, sortString));
         //}
         
-        query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+        //query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
 
-        var data = await query.Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive)).ToListAsync();
+        //var data = await query.Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive)).ToListAsync();
 
-        var totalCount = await query.CountAsync();
+        var data = await _context.Collaborators
+            .Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive))
+            .ToListAsync();
+
+        //var totalCount = await query.CountAsync();
+
+        var totalCount = data.Count();
 
         var response = new ListCollaboratorsResponse() 
         {

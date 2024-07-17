@@ -46,11 +46,11 @@ app.MapGet("/collaborators/{id:guid}", async (Guid id, ISender mediatr) =>
     return Results.Ok(collaborator);
 });
 
-//app.MapGet("/collaborators", async (ISender mediatr) =>
-//{
-//    var collaborators = await mediatr.Send(new GetAllCollaboratorsQuery());
-//    return Results.Ok(collaborators);
-//});
+app.MapGet("/collaborators", async (ISender mediatr) =>
+{
+    var collaborators = await mediatr.Send(new GetAllCollaboratorsQuery());
+    return Results.Ok(collaborators);
+});
 
 app.MapPost("/list-collaborators", async ([FromBody] ListCollaboratorsQuery query, ISender mediatr) =>
 {

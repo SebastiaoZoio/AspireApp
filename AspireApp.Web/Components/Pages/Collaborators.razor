@@ -1,4 +1,5 @@
 ﻿@page "/collaborators"
+@rendermode InteractiveServer
 @attribute [StreamRendering(true)]
 @attribute [OutputCache(Duration = 5)]
 
@@ -51,16 +52,15 @@ else
 
 <Grid TItem="Collaborator"
       Class="table table-hover table-bordered table-striped"
-      DataProvider="LoadCollaborators"
+      DataProvider="ListCollaborators"
+
       AllowFiltering="true"
       AllowPaging="true"
       AllowSorting="true"
       Responsive="true">
 
-    <GridColumn TItem="Collaborator" HeaderText="Id" PropertyName="CollaboratorId" SortString="Id" SortKeySelector="item => item.Id" FilterTextboxWidth="50" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
-        @context.Id
-    </GridColumn>
-    <GridColumn TItem="Collaborator" HeaderText="Name" PropertyName="CollaboratorName" SortString="Name" SortKeySelector="item => item.Name" FilterTextboxWidth="80">
+
+    <GridColumn TItem="Collaborator" HeaderText="Name" PropertyName="Name" SortString="Name" SortKeySelector="item => item.Name" FilterTextboxWidth="80">
         @context.Name
     </GridColumn>
     <GridColumn TItem="Collaborator" HeaderText="IsActive" PropertyName="IsActive" SortString="IsActive" Sortable="false" FilterTextboxWidth="50">
@@ -70,15 +70,27 @@ else
 </Grid>
 
 @code {
-    private List<Collaborator> collaborators = null; //new List<Collaborator>();
-    private Collaborator newCollaborator = new Collaborator();
+    // private IEnumerable<Collaborator> collaborators = null; //new List<Collaborator>();
+    // private Collaborator newCollaborator = new Collaborator();
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadCollaborators(new GridDataProviderRequest<Collaborator>());
+        await LoadCollaborators();
     }
 
-    private async Task<GridDataProviderResult<Collaborator>> LoadCollaborators(GridDataProviderRequest<Collaborator> request)
+    private async Task LoadCollaborators()
+    {
+        //collaborators = await CollaboratorService.GetCollaboratorsAsync();
+
+        await ListCollaborators(new GridDataProviderRequest<Collaborator>()
+        {
+            PageNumber = 1,
+            PageSize = 10
+        });
+        StateHasChanged();
+    }
+
+    private async Task<GridDataProviderResult<Collaborator>> ListCollaborators(GridDataProviderRequest<Collaborator> request)
     {
         string sortString = "";
         SortDirection sortDirection = SortDirection.None;
@@ -99,35 +111,35 @@ else
             SortDirection = sortDirection,
         };
 
-        var result = await CollaboratorService.GetCollaboratorsAsync(listCollaboratorsRequest);
+        var result = await CollaboratorService.ListCollaboratorsAsync(listCollaboratorsRequest);
         return await Task.FromResult(new GridDataProviderResult<Collaborator> { Data = result.Item1, TotalCount = result.Item2 });
     }
 
-    private async Task AddCollaborator()
-    {
-        var response = await CollaboratorService.AddCollaboratorAsync(newCollaborator);
-        if (response.IsSuccessStatusCode)
-        {
-            collaborators.Add(newCollaborator); // Reload the list of employees
-            newCollaborator = new Collaborator(); // Reset the new employee form
+    // private async Task AddCollaborator()
+    // {
+    //     var response = await CollaboratorService.AddCollaboratorAsync(newCollaborator);
+    //     if (response.IsSuccessStatusCode)
+    //     {
+    //         collaborators.Add(newCollaborator); // Reload the list of employees
+    //         newCollaborator = new Collaborator(); // Reset the new employee form
 
-        }
-        else
-        {
-            // Handle error
-        }
-    }
+    //     }
+    //     else
+    //     {
+    //         // Handle error
+    //     }
+    // }
 
-    private async Task RemoveEmployee(Guid collaboratorId)
-    {
-        var response = await CollaboratorService.RemoveCollaboratorAsync(collaboratorId); 
-        if (response.IsSuccessStatusCode)
-        {
-            collaborators.Remove(collaborators.FirstOrDefault(c => c.Id == collaboratorId));  // Reload the list of employees
-        }
-        else
-        {
-            // Handle error
-        }
-    }
+    // private async Task RemoveEmployee(Guid collaboratorId)
+    // {
+    //     var response = await CollaboratorService.RemoveCollaboratorAsync(collaboratorId); 
+    //     if (response.IsSuccessStatusCode)
+    //     {
+    //         collaborators.Remove(collaborators.FirstOrDefault(c => c.Id == collaboratorId));  // Reload the list of employees
+    //     }
+    //     else
+    //     {
+    //         // Handle error
+    //     }
+    // }
 }

@@ -18,13 +18,13 @@ public class CollaboratorService
         _baseUri = settings.Value.BaseUri;
     }
 
-    //public async Task<List<Collaborator>> GetCollaboratorsAsync()
-    //{
-    //    var collaborators = await _httpClient.GetFromJsonAsync<List<Collaborator>>($"{_baseUri}collaborators");
-    //    return collaborators;
-    //}
+    public async Task<IEnumerable<Collaborator>> GetCollaboratorsAsync()
+    {
+        var collaborators = await _httpClient.GetFromJsonAsync<IEnumerable<Collaborator>>($"{_baseUri}collaborators");
+        return collaborators;
+    }
 
-    public async Task<(IEnumerable<Collaborator>, int)> GetCollaboratorsAsync(ListCollaboratorsRequest request)
+    public async Task<(IEnumerable<Collaborator>, int)> ListCollaboratorsAsync(ListCollaboratorsRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync($"{_baseUri}list-collaborators", request);
 
