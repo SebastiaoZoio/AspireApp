@@ -1,11 +1,9 @@
 ﻿using AspireApp.ApiService.Domain;
-using AspireApp.ApiService.Domain.Enums;
 using AspireApp.ApiService.Features.Collaborators.Dtos;
-using AspireApp.ApiService.Features.Collaborators.Queries.List;
 using AspireApp.ApiService.Features.Collaborators.Responses;
 using AspireApp.ApiService.Persistence.Interfaces;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using BlazorBootstrap;
 
 namespace AspireApp.ApiService.Persistence.Repositories;
 
@@ -51,40 +49,60 @@ public class CollaboratorRepository : ICollaboratorRepository
     {
         var query = _context.Collaborators.AsQueryable();
 
-        //foreach (var filter in filters)
-        //{
-        //    if (filter. == "Contains" && filter.Value is string stringValue)
-        //    {
-        //        query = query.Where(c => EF.Property<string>(c, filter.PropertyName).Contains(stringValue));
-        //    }
-        //    // Add other filter types as needed
-        //}
-
-        //if (!string.IsNullOrEmpty(sortString))
-        //{
-        //    query = sortDirection == SortDirection.Ascending
-        //        ? query.OrderBy(c => EF.Property<object>(c, sortString))
-        //        : query.OrderByDescending(c => EF.Property<object>(c, sortString));
-        //}
-        
-        //query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
-
-        //var data = await query.Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive)).ToListAsync();
-
-        var data = await _context.Collaborators
-            .Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive))
-            .ToListAsync();
-
-        //var totalCount = await query.CountAsync();
-
-        var totalCount = data.Count();
-
-        var response = new ListCollaboratorsResponse() 
+        // Apply filters
+        if (filters != null)
         {
-            Collaborators = data, 
-            TotalCount = totalCount
-        };
+            query = filters.Aggregate(query, (currentQuery, filter) => GetFilteredQuery(currentQuery, filter));
+        }
 
-        return response;
+        // Apply sorting
+        if (!string.IsNullOrEmpty(sortString))
+        {
+            query = sortDirection == SortDirection.Ascending
+                ? query.OrderBy(c => EF.Property<object>(c, sortString))
+                : query.OrderByDescending(c => EF.Property<object>(c, sortString));
+        }
+
+        // Apply pagination
+        query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+
+        // Fetch data
+        var data = await query.Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive)).ToListAsync();
+
+        // Create response
+        return new ListCollaboratorsResponse
+        {
+            Collaborators = data,
+            TotalCount = data.Count()
+        };
+    }
+
+    private IQueryable<Collaborator> GetFilteredQuery(IQueryable<Collaborator> query, FilterItem filter)
+    {
+        switch (filter.Operator)
+        {
+            case FilterOperator.Equals:
+                return query.Where(p => EF.Property<string>(p, filter.PropertyName).Equals(filter.Value));
+            case FilterOperator.NotEquals:
+                return query.Where(p => !EF.Property<string>(p, filter.PropertyName).Equals(filter.Value));
+            case FilterOperator.Contains:
+                return query.Where(p => EF.Property<string>(p, filter.PropertyName).Contains(filter.Value));
+            case FilterOperator.StartsWith:
+                return query.Where(p => EF.Property<string>(p, filter.PropertyName).StartsWith(filter.Value));
+            case FilterOperator.EndsWith:
+                return query.Where(p => EF.Property<string>(p, filter.PropertyName).EndsWith(filter.Value));
+            case FilterOperator.DoesNotContain:
+                return query.Where(p => !EF.Property<string>(p, filter.PropertyName).Contains(filter.Value));
+            case FilterOperator.IsNull:
+                return query.Where(p => EF.Property<string>(p, filter.PropertyName) == null);
+            case FilterOperator.IsEmpty:
+                return query.Where(p => EF.Property<string>(p, filter.PropertyName) == string.Empty);
+            case FilterOperator.IsNotNull:
+                return query.Where(p => EF.Property<string>(p, filter.PropertyName) != null);
+            case FilterOperator.IsNotEmpty:
+                return query.Where(p => EF.Property<string>(p, filter.PropertyName).Length > 0);
+            default:
+                return query;
+        }
     }
 }

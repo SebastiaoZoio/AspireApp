@@ -4,6 +4,8 @@ using AspireApp.Web.Services.Models;
 using System.Net.Http.Json;
 using AspireApp.Web.Services.Requests;
 using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text;
 
 namespace AspireApp.Web.Services;
 
@@ -36,7 +38,6 @@ public class CollaboratorService
         var content = await response.Content.ReadAsStringAsync();
 
         var jsonResponse = JObject.Parse(content);
-
 
         var collaborators = jsonResponse["collaborators"].ToObject<IEnumerable<Collaborator>>();
         var totalCount = jsonResponse["totalCount"].ToObject<int>();
