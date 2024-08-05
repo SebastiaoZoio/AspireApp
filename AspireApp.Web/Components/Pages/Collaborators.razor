@@ -11,49 +11,18 @@
 
 <h1>Colaboradores</h1>
 
-@* @if (collaborators == null)
+@if (isLoading)
 {
     <div class="d-flex justify-content-center">
         <Spinner Type="SpinnerType.Border" />
     </div>
 }
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>IsActive</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var collaborator in collaborators)
-            {
-                <tr>
-                    <td>@collaborator.Name</td>
-                    <td>@collaborator.IsActive</td>
-                    <td>
-                        <button class="btn btn-danger" @onclick="() => RemoveEmployee(collaborator.Id)">Remover</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
-    <h4>Add Employee</h4>
-<div>
-    <input type="text" @bind="newCollaborator.Name" placeholder="Name" />
-        <button class="btn btn-primary" @onclick="async () => await AddCollaborator()">Adicionar</button>
-</div>
-
-} *@
 
 
 <Grid TItem="Collaborator"
       Class="table table-hover table-bordered table-striped"
       DataProvider="ListCollaborators"
-
+      EmptyText="No records to display"
       AllowFiltering="true"
       AllowPaging="true"
       AllowSorting="true"
@@ -63,19 +32,20 @@ else
     <GridColumn TItem="Collaborator" HeaderText="Name" PropertyName="Name" SortString="Name" SortKeySelector="item => item.Name" FilterTextboxWidth="80">
         @context.Name
     </GridColumn>
-    <GridColumn TItem="Collaborator" HeaderText="IsActive" PropertyName="IsActive" SortString="IsActive" Sortable="false" FilterTextboxWidth="50">
+    <GridColumn TItem="Collaborator" HeaderText="IsActive" PropertyName="IsActive" Sortable="false" FilterTextboxWidth="50">
         @context.IsActive
     </GridColumn>
 
 </Grid>
 
 @code {
-    // private IEnumerable<Collaborator> collaborators = null; //new List<Collaborator>();
-    // private Collaborator newCollaborator = new Collaborator();
+
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadCollaborators();
+        isLoading = false;
     }
 
     private async Task LoadCollaborators()
