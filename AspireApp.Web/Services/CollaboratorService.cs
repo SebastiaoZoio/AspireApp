@@ -28,22 +28,60 @@ public class CollaboratorService
 
     public async Task<(IEnumerable<Collaborator>, int)> ListCollaboratorsAsync(ListCollaboratorsRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync($"{_baseUri}list-collaborators", request);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            throw new HttpRequestException($"Request failed with status code {response.StatusCode}");
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30))) // Setting a timeout of 30 seconds
+            {
+                var response = await _httpClient.PostAsJsonAsync($"{_baseUri}list-collaborators", request, cts.Token);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new HttpRequestException($"Request failed with status code {response.StatusCode}");
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    throw new HttpRequestException("Received an empty response from the server.");
+                }
+
+                JObject jsonResponse;
+                try
+                {
+                    jsonResponse = JObject.Parse(content);
+                }
+                catch (JsonException ex)
+                {
+                    throw new HttpRequestException("Failed to parse JSON response.", ex);
+                }
+
+                if (jsonResponse["collaborators"] == null || jsonResponse["totalCount"] == null)
+                {
+                    throw new HttpRequestException("Response JSON does not contain the expected fields.");
+                }
+
+                var collaborators = jsonResponse["collaborators"].ToObject<IEnumerable<Collaborator>>();
+                var totalCount = jsonResponse["totalCount"].ToObject<int>();
+
+                return (collaborators, totalCount);
+            }
         }
-
-        var content = await response.Content.ReadAsStringAsync();
-
-        var jsonResponse = JObject.Parse(content);
-
-        var collaborators = jsonResponse["collaborators"].ToObject<IEnumerable<Collaborator>>();
-        var totalCount = jsonResponse["totalCount"].ToObject<int>();
-
-        return (collaborators, totalCount);
+        catch (TaskCanceledException ex) when (!ex.CancellationToken.IsCancellationRequested)
+        {
+            throw new HttpRequestException("Request timed out.", ex);
+        }
+        catch (HttpRequestException ex)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
     }
+
 
     public async Task<HttpResponseMessage> AddCollaboratorAsync(Collaborator Collaborator)
     {
