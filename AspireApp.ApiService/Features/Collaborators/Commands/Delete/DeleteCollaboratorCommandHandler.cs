@@ -19,7 +19,7 @@ public class DeleteCollaboratorCommandHandler: IRequestHandler<DeleteCollaborato
 
         if (collaborator == null)
         {
-            throw new CollaboratorNotFoundException(request.Id);
+            //throw new CollaboratorNotFoundException(request.Id);
         }
 
         collaborator.IsActive = false;

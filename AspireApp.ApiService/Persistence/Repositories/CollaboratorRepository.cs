@@ -21,6 +21,13 @@ public class CollaboratorRepository : ICollaboratorRepository
         return await _context.Collaborators.FindAsync(id);
     }
 
+    public async Task<List<Collaborator>> GetByIdsAsync(List<Guid> ids)
+    {
+        return await _context.Collaborators
+            .Where(c => ids.Contains(c.Id))
+            .ToListAsync();
+    }
+
     public async Task AddAsync(Collaborator collaborator)
     {
         _context.Collaborators.Add(collaborator);

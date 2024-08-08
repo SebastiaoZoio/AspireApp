@@ -78,5 +78,22 @@ app.MapPost("/delete-collaborator/{id:guid}", async (Guid id, ISender mediatr) =
     }
 });
 
+app.MapPost("/delete-collaborators", async (DeleteCollaboratorsCommand command, IMediator mediatr) =>
+{
+    try
+    {
+        await mediatr.Send(command);
+        return Results.Ok();
+    }
+    catch(CollaboratorsNotFoundException ex)
+    {
+        return Results.NotFound(new
+        {
+            message = ex.Message,
+            names = ex.CollaboratorNames
+        });
+    }
+});
+
 app.UseHttpsRedirection();
 app.Run();
