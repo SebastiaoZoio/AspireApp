@@ -20,12 +20,6 @@ public class CollaboratorService
         _baseUri = settings.Value.BaseUri;
     }
 
-    public async Task<IEnumerable<Collaborator>> GetCollaboratorsAsync()
-    {
-        var collaborators = await _httpClient.GetFromJsonAsync<IEnumerable<Collaborator>>($"{_baseUri}collaborators");
-        return collaborators;
-    }
-
     public async Task<(IEnumerable<Collaborator>, int)> ListCollaboratorsAsync(ListCollaboratorsRequest request)
     {
         try
@@ -83,9 +77,9 @@ public class CollaboratorService
     }
 
 
-    public async Task<HttpResponseMessage> AddCollaboratorAsync(Collaborator Collaborator)
+    public async Task<HttpResponseMessage> AddCollaboratorAsync(NewCollaboratorRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync($"{_baseUri}collaborator", Collaborator);
+        var response = await _httpClient.PostAsJsonAsync($"{_baseUri}collaborator", request);
         return response;
     }
 

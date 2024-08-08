@@ -7,7 +7,6 @@
 @using Services.Models
 @using Services.Requests
 
-
 <div class="container-fluid">
     <div class="row">
         <div class="col-6">            
@@ -26,7 +25,7 @@
                             <Spinner Type="SpinnerType.Border" />
                         </div>
                     }
-                    <Grid TItem="Collaborator"
+                    <Grid Id="collaboratorsGrid" @ref="collaboratorsGridRef" TItem="Collaborator"
                           Class="table table-hover table-bordered"
                           DataProvider="ListCollaborators"
                           EmptyText="Não existem colaboradores"
@@ -52,7 +51,6 @@
     </div>
 </div>
 
-
 <Modal @ref="modalNewCollaborator" Title="Novo colaborador" IsVerticallyCentered="true">
     <BodyTemplate>
         <div class="mb-3">
@@ -62,14 +60,18 @@
     </BodyTemplate>
     <FooterTemplate>
         <Button Color="ButtonColor.Secondary" @onclick="OnHideNewCollaboratorModalClick">Cancelar</Button>
-        <Button Color="ButtonColor.Primary">Guardar</Button>
+        <Button Color="ButtonColor.Primary" @onclick="AddCollaborator">Adicionar</Button>
     </FooterTemplate>
 </Modal>
 
 <ConfirmDialog @ref="dialog" />
 
-@code {
+<Toasts class="p-3" Messages="toastMessages" AutoHide="true" Placement="ToastsPlacement.TopCenter" />
 
+
+@code {
+    private Grid<Collaborator> collaboratorsGridRef;
+    List<ToastMessage> toastMessages = new List<ToastMessage>();
     private bool isLoading = true;
     private Modal modalNewCollaborator = new();
     private string newCollaboratorName = "";
@@ -98,7 +100,6 @@
 
         if (request.Sorting is not null && request.Sorting.Any())
         {
-            // Note: Multi column sorting is not supported at this moment
             sortString = request.Sorting.FirstOrDefault()!.SortString;
             sortDirection = request.Sorting.FirstOrDefault()!.SortDirection;
         }
@@ -116,20 +117,26 @@
         return await Task.FromResult(new GridDataProviderResult<Collaborator> { Data = result.Item1, TotalCount = result.Item2 });
     }
 
-    // private async Task AddCollaborator()
-    // {
-    //     var response = await CollaboratorService.AddCollaboratorAsync(newCollaborator);
-    //     if (response.IsSuccessStatusCode)
-    //     {
-    //         collaborators.Add(newCollaborator); // Reload the list of employees
-    //         newCollaborator = new Collaborator(); // Reset the new employee form
+    private async Task AddCollaborator()
+    {
+        var newCollaboratorRequest = new NewCollaboratorRequest()
+            {
+                Name = newCollaboratorName
+            };
 
-    //     }
-    //     else
-    //     {
-    //         // Handle error
-    //     }
-    // }
+        var response = await CollaboratorService.AddCollaboratorAsync(newCollaboratorRequest);
+        if (response.IsSuccessStatusCode)
+        {
+            ShowToast(ToastType.Success, "Novo Colaborador", "Novo colaborador adicionado com sucesso!");
+            await LoadCollaborators();
+            await collaboratorsGridRef.RefreshDataAsync();
+            await OnHideNewCollaboratorModalClick();
+        }
+        else
+        {
+            ShowToast(ToastType.Danger, "Novo Colaborador", "Erro a adicionar novo colaborador");
+        }
+    }
 
     // private async Task RemoveEmployee(Guid collaboratorId)
     // {
@@ -146,12 +153,19 @@
 
     private async Task OnShowNewCollaboratorModalClick()
     {
+        clearNewCollaboratorName();
         await modalNewCollaborator?.ShowAsync();
     }
 
     private async Task OnHideNewCollaboratorModalClick()
     {
+        clearNewCollaboratorName();
         await modalNewCollaborator?.HideAsync();
+    }
+
+    private void clearNewCollaboratorName()
+    {
+        newCollaboratorName = "";
     }
 
     private ConfirmDialog dialog = default!;
@@ -176,6 +190,17 @@
             // do something
         }
     }
+
+    private void ShowToast(ToastType toastType, string title, string message) => toastMessages.Add(CreateToastMessage(toastType, title, message));
+
+    private ToastMessage CreateToastMessage(ToastType toastType, string title, string message)
+    => new ToastMessage
+        {
+            Type = toastType,
+            Title = title,
+            HelpText = $"{DateTime.Now}",
+            Message = message,
+        };
 
     private Task OnSelectedItemsChanged(HashSet<Collaborator> collaborators)
     {
@@ -206,5 +231,4 @@
 
         return await Task.FromResult(filtersTranslation);
     }
-
 }
