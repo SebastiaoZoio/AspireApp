@@ -6,6 +6,9 @@ using AspireApp.Web.Services.Requests;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
 using System.Text;
+using AspireApp.Web.Services.Responses;
+using AspireApp.Web.Services.Results;
+using System.Net;
 
 namespace AspireApp.Web.Services;
 
@@ -83,9 +86,36 @@ public class CollaboratorService
         return response;
     }
 
-    public async Task<HttpResponseMessage> RemoveCollaboratorAsync(Guid CollaboratorId)
+    public async Task<RemoveCollaboratorsResult> RemoveCollaboratorsAsync(DeleteCollaboratorsRequest request)
     {
-        var response = await _httpClient.DeleteAsync($"{_baseUri}collaborators/{CollaboratorId}");
-        return response;
+        var response = await _httpClient.PostAsJsonAsync($"{_baseUri}delete-collaborators", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return new RemoveCollaboratorsResult
+            {
+                Success = true,
+                Message = "Collaborators removed successfully."
+            };
+        }
+        else if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            var errorContent = await response.Content.ReadFromJsonAsync<CollaboratorsNotFoundResponse>();
+            return new RemoveCollaboratorsResult
+            {
+                Success = false,
+                Message = errorContent?.Message,
+                NotFoundCollaborators = errorContent?.Names ?? new List<string>()
+            };
+        }
+        else
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            return new RemoveCollaboratorsResult
+            {
+                Success = false,
+                Message = $"Unexpected error: {response.StatusCode}. Details: {errorContent}"
+            };
+        }
     }
 }

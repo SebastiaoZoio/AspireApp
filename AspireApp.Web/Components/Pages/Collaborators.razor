@@ -64,13 +64,14 @@
     </FooterTemplate>
 </Modal>
 
-<ConfirmDialog @ref="dialog" />
+<ConfirmDialog @ref="removeCollaboratorsDialog" />
 
 <Toasts class="p-3" Messages="toastMessages" AutoHide="true" Placement="ToastsPlacement.TopCenter" />
 
 
 @code {
     private Grid<Collaborator> collaboratorsGridRef;
+    private ConfirmDialog removeCollaboratorsDialog = default!;
     List<ToastMessage> toastMessages = new List<ToastMessage>();
     private bool isLoading = true;
     private Modal modalNewCollaborator = new();
@@ -138,18 +139,37 @@
         }
     }
 
-    // private async Task RemoveEmployee(Guid collaboratorId)
-    // {
-    //     var response = await CollaboratorService.RemoveCollaboratorAsync(collaboratorId); 
-    //     if (response.IsSuccessStatusCode)
-    //     {
-    //         collaborators.Remove(collaborators.FirstOrDefault(c => c.Id == collaboratorId));  // Reload the list of employees
-    //     }
-    //     else
-    //     {
-    //         // Handle error
-    //     }
-    // }
+    private async Task RemoveCollaborators()
+    {
+        var request = new DeleteCollaboratorsRequest
+            {
+                collaborators = selectedCollaborators.ToList<Collaborator>()
+            };
+
+        var response = await CollaboratorService.RemoveCollaboratorsAsync(request);
+
+        if (response.Success)
+        {
+            ShowToast(ToastType.Success, "Remove Collaborators", "Collaborators removed successfully.");
+            await LoadCollaborators();
+            await collaboratorsGridRef.RefreshDataAsync();
+            selectedCollaborators = new();
+        }
+        else
+        {
+            //ShowToast(ToastType.Danger, "Remove Collaborators", response.Message);
+
+            if (response.NotFoundCollaborators.Any())
+            {
+                foreach (var collaboratorName in response.NotFoundCollaborators)
+                {
+                    ShowToast(ToastType.Danger, "Remove Collaborators", $"Collaborator '{collaboratorName}' was not found.");
+                }
+            }
+        }
+    }
+
+    #region Modals, Dialogs and Toasts
 
     private async Task OnShowNewCollaboratorModalClick()
     {
@@ -168,26 +188,20 @@
         newCollaboratorName = "";
     }
 
-    private ConfirmDialog dialog = default!;
-
     private async Task ShowConfirmationAsync()
     {
         string collaboratorNames = string.Join(", ", selectedCollaborators.Select(c => c.Name));
         string message = $"Colaboradores a eliminar: {collaboratorNames}";
 
         var options = new ConfirmDialogOptions { IsVerticallyCentered = true };
-        var confirmation = await dialog.ShowAsync(
+        var confirmation = await removeCollaboratorsDialog.ShowAsync(
             title: "Confirma que quer eliminar?",
             message1: message,
             confirmDialogOptions: options);
 
         if (confirmation)
         {
-            // do something
-        }
-        else
-        {
-            // do something
+            await RemoveCollaborators();
         }
     }
 
@@ -201,6 +215,11 @@
             HelpText = $"{DateTime.Now}",
             Message = message,
         };
+
+    #endregion
+
+
+    #region Grid Functions
 
     private Task OnSelectedItemsChanged(HashSet<Collaborator> collaborators)
     {
@@ -231,4 +250,6 @@
 
         return await Task.FromResult(filtersTranslation);
     }
+
+    #endregion
 }
