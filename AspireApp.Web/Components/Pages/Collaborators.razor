@@ -55,12 +55,15 @@
     <BodyTemplate>
         <div class="mb-3">
             <label for="collaboratorName">Nome:</label>
-            <InputText id="newCollaboratorName" @bind-Value="newCollaboratorName" placeholder="João Silva" class="form-control" />
+            <InputText id="newCollaboratorName"
+                       @bind-Value="newCollaboratorName"
+                       placeholder="João Silva"
+                       class="form-control" />
         </div>
     </BodyTemplate>
     <FooterTemplate>
         <Button Color="ButtonColor.Secondary" @onclick="OnHideNewCollaboratorModalClick">Cancelar</Button>
-        <Button Color="ButtonColor.Primary" @onclick="AddCollaborator">Adicionar</Button>
+        <Button Color="ButtonColor.Primary" Disabled="string.IsNullOrEmpty(newCollaboratorName)" @onclick="AddCollaborator">Adicionar</Button>
     </FooterTemplate>
 </Modal>
 
@@ -120,23 +123,26 @@
 
     private async Task AddCollaborator()
     {
-        var newCollaboratorRequest = new NewCollaboratorRequest()
-            {
-                Name = newCollaboratorName
-            };
+        if (!string.IsNullOrWhiteSpace(newCollaboratorName))
+        {
+            var newCollaboratorRequest = new NewCollaboratorRequest()
+                {
+                    Name = newCollaboratorName
+                };
 
-        var response = await CollaboratorService.AddCollaboratorAsync(newCollaboratorRequest);
-        if (response.IsSuccessStatusCode)
-        {
-            ShowToast(ToastType.Success, "Novo Colaborador", "Novo colaborador adicionado com sucesso!");
-            await LoadCollaborators();
-            await collaboratorsGridRef.RefreshDataAsync();
-            await OnHideNewCollaboratorModalClick();
-        }
-        else
-        {
-            ShowToast(ToastType.Danger, "Novo Colaborador", "Erro a adicionar novo colaborador");
-        }
+            var response = await CollaboratorService.AddCollaboratorAsync(newCollaboratorRequest);
+            if (response.IsSuccessStatusCode)
+            {
+                ShowToast(ToastType.Success, "Novo Colaborador", "Novo colaborador adicionado com sucesso!");
+                await LoadCollaborators();
+                await collaboratorsGridRef.RefreshDataAsync();
+                await OnHideNewCollaboratorModalClick();
+            }
+            else
+            {
+                ShowToast(ToastType.Danger, "Novo Colaborador", "Erro a adicionar novo colaborador");
+            }
+        }        
     }
 
     private async Task RemoveCollaborators()

@@ -54,7 +54,8 @@ public class CollaboratorRepository : ICollaboratorRepository
 
     public async Task<ListCollaboratorsResponse> ListAsync(IEnumerable<FilterItem> filters, int pageNumber, int pageSize, string sortString, SortDirection sortDirection)
     {
-        var query = _context.Collaborators.AsQueryable();
+        // Get active collaborators only
+        var query = _context.Collaborators.Where(c => c.IsActive).AsQueryable();
 
         // Apply filters
         if (filters != null)
