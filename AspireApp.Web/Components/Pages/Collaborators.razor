@@ -6,17 +6,19 @@
 @inject Services.CollaboratorService CollaboratorService
 @using Services.Models
 @using Services.Requests
+@using BlazorBootstrap
+@using Blazorise = Blazorise
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-6">            
-            <Card class="mt-4">
-                <CardBody>                    
+        <div class="col-8">            
+            <BlazorBootstrap.Card class="mt-4">
+                <BlazorBootstrap.CardBody>                    
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <CardTitle>Colaboradores</CardTitle>
+                        <BlazorBootstrap.CardTitle>Colaboradores</BlazorBootstrap.CardTitle>
                         <div>
-                            <Button Color="ButtonColor.Primary" @onclick="OnShowNewCollaboratorModalClick" Type="ButtonType.Link" Disabled="isLoading">Novo Colaborador</Button>
-                            <Button Color="ButtonColor.Danger" @onclick="ShowConfirmationAsync" Type="ButtonType.Link" Disabled="selectedCollaborators.Count == 0">Eliminar</Button>
+                            <BlazorBootstrap.Button Color="ButtonColor.Primary" @onclick="OnShowNewCollaboratorModalClick" Type="BlazorBootstrap.ButtonType.Link" Disabled="isLoading">Adicionar Colaborador</BlazorBootstrap.Button>
+                            <BlazorBootstrap.Button Color="ButtonColor.Danger" @onclick="ShowConfirmationAsync" Type="BlazorBootstrap.ButtonType.Link" Disabled="selectedCollaborators.Count == 0">Eliminar</BlazorBootstrap.Button>
                         </div>                        
                     </div>
                     @if (isLoading)
@@ -25,7 +27,7 @@
                             <Spinner Type="SpinnerType.Border" />
                         </div>
                     }
-                    <Grid Id="collaboratorsGrid" @ref="collaboratorsGridRef" TItem="Collaborator"
+                    <BlazorBootstrap.Grid Id="collaboratorsGrid" @ref="collaboratorsGridRef" TItem="Collaborator"
                           Class="table table-hover table-bordered"
                           DataProvider="ListCollaborators"
                           EmptyText="Não existem colaboradores"
@@ -44,14 +46,22 @@
                         <GridColumn TItem="Collaborator" HeaderText="Ativo" PropertyName="IsActive" Sortable="false" Filterable="false">
                             @context.IsActive
                         </GridColumn>
-                    </Grid>
-                </CardBody>
-            </Card>
+                    </BlazorBootstrap.Grid>
+                </BlazorBootstrap.CardBody>
+            </BlazorBootstrap.Card>
+        </div>
+        <div class="col-4">
+            <BlazorBootstrap.Card class="mt-4">
+                <BlazorBootstrap.CardBody>  
+                    <DatePicker TValue="DateTime?" @bind-Date="@date" InputFormat="dd.MM.yyyy" DisplayFormat="dd.MM.yyyy" />
+
+                </BlazorBootstrap.CardBody>
+            </BlazorBootstrap.Card>
         </div>
     </div>
 </div>
 
-<Modal @ref="modalNewCollaborator" Title="Novo colaborador" IsVerticallyCentered="true">
+<BlazorBootstrap.Modal @ref="modalNewCollaborator" Title="Adicionar colaborador" IsVerticallyCentered="true">
     <BodyTemplate>
         <div class="mb-3">
             <label for="collaboratorName">Nome:</label>
@@ -62,10 +72,10 @@
         </div>
     </BodyTemplate>
     <FooterTemplate>
-        <Button Color="ButtonColor.Secondary" @onclick="OnHideNewCollaboratorModalClick">Cancelar</Button>
-        <Button Color="ButtonColor.Primary" Disabled="string.IsNullOrEmpty(newCollaboratorName)" @onclick="AddCollaborator">Adicionar</Button>
+        <BlazorBootstrap.Button Color="ButtonColor.Secondary" @onclick="OnHideNewCollaboratorModalClick">Cancelar</BlazorBootstrap.Button>
+        <BlazorBootstrap.Button Color="ButtonColor.Primary" Disabled="string.IsNullOrEmpty(newCollaboratorName)" @onclick="AddCollaborator">Adicionar</BlazorBootstrap.Button>
     </FooterTemplate>
-</Modal>
+</BlazorBootstrap.Modal>
 
 <ConfirmDialog @ref="removeCollaboratorsDialog" />
 
@@ -77,9 +87,10 @@
     private ConfirmDialog removeCollaboratorsDialog = default!;
     List<ToastMessage> toastMessages = new List<ToastMessage>();
     private bool isLoading = true;
-    private Modal modalNewCollaborator = new();
+    private BlazorBootstrap.Modal modalNewCollaborator = new();
     private string newCollaboratorName = "";
     private HashSet<Collaborator> selectedCollaborators = new();
+    DateTime? date;
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,7 +111,7 @@
     private async Task<GridDataProviderResult<Collaborator>> ListCollaborators(GridDataProviderRequest<Collaborator> request)
     {
         string sortString = "";
-        SortDirection sortDirection = SortDirection.None;
+        BlazorBootstrap.SortDirection sortDirection = BlazorBootstrap.SortDirection.None;
 
         if (request.Sorting is not null && request.Sorting.Any())
         {
