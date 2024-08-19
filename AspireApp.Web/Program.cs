@@ -2,9 +2,6 @@ using AspireApp.Web;
 using AspireApp.Web.Components;
 using AspireApp.Web.Components.Configurations;
 using AspireApp.Web.Services;
-using Blazorise;
-using Blazorise.Bootstrap5;
-using Blazorise.Icons.FontAwesome;
 using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,14 +15,6 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddOutputCache();
 builder.Services.AddBlazorBootstrap();
-
-builder.Services
-    .AddBlazorise(options =>
-    {
-        options.Immediate = true;
-    })
-    .AddBootstrap5Providers()
-    .AddFontAwesomeIcons();
 
 builder.Services.AddRadzenComponents();
 

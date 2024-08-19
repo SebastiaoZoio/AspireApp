@@ -6,18 +6,17 @@
 @inject Services.CollaboratorService CollaboratorService
 @using Services.Models
 @using Services.Requests
-@using BlazorBootstrap
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-6">            
-            <BlazorBootstrap.Card class="mt-4">
-                <BlazorBootstrap.CardBody>                    
+            <Card class="mt-4">
+                <CardBody>                    
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <BlazorBootstrap.CardTitle>Colaboradores</BlazorBootstrap.CardTitle>
+                        <CardTitle>Colaboradores</CardTitle>
                         <div>
-                            <BlazorBootstrap.Button Color="ButtonColor.Primary" @onclick="OnShowNewCollaboratorModalClick" Type="BlazorBootstrap.ButtonType.Link" Disabled="isLoading">Adicionar Colaborador</BlazorBootstrap.Button>
-                            <BlazorBootstrap.Button Color="ButtonColor.Danger" @onclick="ShowConfirmationAsync" Type="BlazorBootstrap.ButtonType.Link" Disabled="selectedCollaborators.Count == 0">Eliminar</BlazorBootstrap.Button>
+                            <Button Color="ButtonColor.Primary" @onclick="OnShowNewCollaboratorModalClick" Type="BlazorBootstrap.ButtonType.Link" Disabled="isLoading">Adicionar Colaborador</Button>
+                            <Button Color="ButtonColor.Danger" @onclick="ShowConfirmationAsync" Type="BlazorBootstrap.ButtonType.Link" Disabled="selectedCollaborators.Count == 0">Eliminar</Button>
                         </div>                        
                     </div>
                     @if (isLoading)
@@ -26,7 +25,7 @@
                             <Spinner Type="SpinnerType.Border" />
                         </div>
                     }
-                    <BlazorBootstrap.Grid Id="collaboratorsGrid" @ref="collaboratorsGridRef" TItem="Collaborator"
+                    <Grid Id="collaboratorsGrid" @ref="collaboratorsGridRef" TItem="Collaborator"
                           Class="table table-hover table-bordered"
                           DataProvider="ListCollaborators"
                           EmptyText="Não existem colaboradores"
@@ -45,13 +44,13 @@
                         <GridColumn TItem="Collaborator" HeaderText="Ativo" PropertyName="IsActive" Sortable="false" Filterable="false">
                             @context.IsActive
                         </GridColumn>
-                    </BlazorBootstrap.Grid>
-                </BlazorBootstrap.CardBody>
-            </BlazorBootstrap.Card>
+                    </Grid>
+                </CardBody>
+            </Card>
         </div>
         <div class="col-6">
-            <BlazorBootstrap.Card class="mt-4">
-                <BlazorBootstrap.CardBody>  
+            <Card class="mt-4">
+                <CardBody>  
                     <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
                         TextProperty="Text" SelectedIndex="1"
                         SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender MonthSelect=@OnMonthSelect>
@@ -60,13 +59,13 @@
                         <RadzenYearView />
                     </RadzenScheduler>
 
-                </BlazorBootstrap.CardBody>
-            </BlazorBootstrap.Card>
+                </CardBody>
+            </Card>
         </div>
     </div>
 </div>
 
-<BlazorBootstrap.Modal @ref="modalNewCollaborator" Title="Adicionar colaborador" IsVerticallyCentered="true">
+<Modal @ref="modalNewCollaborator" Title="Adicionar colaborador" IsVerticallyCentered="true">
     <BodyTemplate>
         <div class="mb-3">
             <label for="collaboratorName">Nome:</label>
@@ -77,10 +76,10 @@
         </div>
     </BodyTemplate>
     <FooterTemplate>
-        <BlazorBootstrap.Button Color="ButtonColor.Secondary" @onclick="OnHideNewCollaboratorModalClick">Cancelar</BlazorBootstrap.Button>
-        <BlazorBootstrap.Button Color="ButtonColor.Primary" Disabled="string.IsNullOrEmpty(newCollaboratorName)" @onclick="AddCollaborator">Adicionar</BlazorBootstrap.Button>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideNewCollaboratorModalClick">Cancelar</Button>
+        <Button Color="ButtonColor.Primary" Disabled="string.IsNullOrEmpty(newCollaboratorName)" @onclick="AddCollaborator">Adicionar</Button>
     </FooterTemplate>
-</BlazorBootstrap.Modal>
+</Modal>
 
 <ConfirmDialog @ref="removeCollaboratorsDialog" />
 
@@ -95,14 +94,13 @@
     //collaborator variables
     private Grid<Collaborator>? collaboratorsGridRef;
     private ConfirmDialog removeCollaboratorsDialog = default!;        
-    private BlazorBootstrap.Modal modalNewCollaborator = new();
+    private Modal modalNewCollaborator = new();
     private string newCollaboratorName = "";
     private HashSet<Collaborator> selectedCollaborators = new();
 
     //scheduler variables
     RadzenScheduler<Appointment> scheduler;
     Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
-    Month startMonth = Month.January;
 
     IList<Appointment> appointments = new List<Appointment>
     {
@@ -134,7 +132,7 @@
     private async Task<GridDataProviderResult<Collaborator>> ListCollaborators(GridDataProviderRequest<Collaborator> request)
     {
         string sortString = "";
-        BlazorBootstrap.SortDirection sortDirection = BlazorBootstrap.SortDirection.None;
+        SortDirection sortDirection = SortDirection.None;
 
         if (request.Sorting is not null && request.Sorting.Any())
         {
@@ -301,12 +299,6 @@
         if (args.View.Text == "Month" && args.Start.Date == DateTime.Today)
         {
             args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
-        }
-
-        // Draw a line for new year if start month is not January
-        if ((args.View.Text == "Planner" || args.View.Text == "Timeline") && args.Start.Month == 12 && startMonth != Month.January)
-        {
-            args.Attributes["style"] = "border-bottom: thick double var(--rz-base-600);";
         }
     }
 
