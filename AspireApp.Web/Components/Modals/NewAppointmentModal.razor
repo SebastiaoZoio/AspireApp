@@ -1,0 +1,60 @@
+﻿@using Services.Models
+
+<Modal @ref="modalNewAppointment" Title="Nova Marcação" IsVerticallyCentered="true">
+    <BodyTemplate>
+        <div class="mb-3">
+            <label for="collaboratorComboBox">Colaborador:</label>
+            @* <BlazorBootstrap.AutoComplete @bind-Value="selectedCollaborator"
+                                          DataProvider="CollaboratorsDataProvider"
+                                          Placeholder="Selecione um colaborador"
+                                          OnChanged="(Collaborator collaborator) => OnAutoCompleteChanged(collaborator)" /> *@
+        </div>
+        <div class="mb-3">
+            <label for="appointmentDate">Data da Consulta:</label>
+            <RadzenDatePicker id="appointmentDate"
+                              @bind-Value="appointmentDate"
+                              DateFormat="dd/MM/yyyy"
+                              Placeholder="Selecione uma data"
+                              Class="form-control" />
+        </div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideNewAppointmentModalClick">Cancelar</Button>
+@*         <Button Color="ButtonColor.Primary" Disabled="@IsFormInvalid" @onclick="AddAppointment">Agendar</Button>
+ *@    </FooterTemplate>
+</Modal>
+
+@code {
+    private Modal modalNewAppointment;
+    private string selectedCollaborator;
+    private DateTime? appointmentDate;
+
+    // [Parameter] public EventCallback<string, DateTime?> AddAppointment { get; set; }
+    [Parameter] public List<string> collaborators { get; set; }
+
+    public async Task OnShowNewAppointmentModalClick()
+    {
+        ClearForm();
+        await modalNewAppointment?.ShowAsync();
+    }
+
+    public async Task OnHideNewAppointmentModalClick()
+    {
+        ClearForm();
+        await modalNewAppointment?.HideAsync();
+    }
+
+    private void ClearForm()
+    {
+        selectedCollaborator = string.Empty;
+        appointmentDate = null;
+    }
+
+    private bool IsFormInvalid => string.IsNullOrEmpty(selectedCollaborator) || !appointmentDate.HasValue;
+
+    // private async Task<AutoCompleteDataProviderResult<Collaborator>> CustomersDataProvider(AutoCompleteDataProviderRequest<Collaborator> request)
+    // {
+    //     var collaborators = await _customerService.GetCustomers(request.Filter, request.CancellationToken); // API call
+    //     return await Task.FromResult(new AutoCompleteDataProviderResult<Collaborator> { Data = customers, TotalCount = customers.Count() });
+    // }
+}

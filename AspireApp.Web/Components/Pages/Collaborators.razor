@@ -4,6 +4,7 @@
 @attribute [OutputCache(Duration = 5)]
 
 @inject Services.CollaboratorService CollaboratorService
+@using AspireApp.Web.Components.Modals
 @using Services.Models
 @using Services.Requests
 
@@ -15,7 +16,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <CardTitle>Colaboradores</CardTitle>
                         <div>
-                            <Button Color="ButtonColor.Primary" @onclick="OnShowNewCollaboratorModalClick" Type="BlazorBootstrap.ButtonType.Link" Disabled="isLoading">Adicionar Colaborador</Button>
+                            <Button Color="ButtonColor.Primary" @onclick="ShowNewCollaboratorModal" Type="BlazorBootstrap.ButtonType.Link" Disabled="isLoading">Adicionar Colaborador</Button>
                             <Button Color="ButtonColor.Danger" @onclick="ShowConfirmationAsync" Type="BlazorBootstrap.ButtonType.Link" Disabled="selectedCollaborators.Count == 0">Eliminar</Button>
                         </div>                        
                     </div>
@@ -51,6 +52,12 @@
         <div class="col-6">
             <Card class="mt-4">
                 <CardBody>  
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <CardTitle>Calendário</CardTitle>
+                        <div>
+                            <Button Color="ButtonColor.Primary" Type="BlazorBootstrap.ButtonType.Link" >Nova Marcação</Button>
+                        </div>
+                    </div>
                     <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
                         TextProperty="Text" SelectedIndex="1"
                         SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender MonthSelect=@OnMonthSelect>
@@ -65,21 +72,8 @@
     </div>
 </div>
 
-<Modal @ref="modalNewCollaborator" Title="Adicionar colaborador" IsVerticallyCentered="true">
-    <BodyTemplate>
-        <div class="mb-3">
-            <label for="collaboratorName">Nome:</label>
-            <InputText id="newCollaboratorName"
-                       @bind-Value="newCollaboratorName"
-                       placeholder="João Silva"
-                       class="form-control" />
-        </div>
-    </BodyTemplate>
-    <FooterTemplate>
-        <Button Color="ButtonColor.Secondary" @onclick="OnHideNewCollaboratorModalClick">Cancelar</Button>
-        <Button Color="ButtonColor.Primary" Disabled="string.IsNullOrEmpty(newCollaboratorName)" @onclick="AddCollaborator">Adicionar</Button>
-    </FooterTemplate>
-</Modal>
+<NewCollaboratorModal @ref="newCollaboratorModal" 
+                      AddCollaborator="AddCollaborator" />
 
 <ConfirmDialog @ref="removeCollaboratorsDialog" />
 
@@ -87,15 +81,14 @@
 
 
 @code {
-    
+
     List<ToastMessage> toastMessages = new List<ToastMessage>();
     private bool isLoading = true;
 
     //collaborator variables
     private Grid<Collaborator>? collaboratorsGridRef;
     private ConfirmDialog removeCollaboratorsDialog = default!;        
-    private Modal modalNewCollaborator = new();
-    private string newCollaboratorName = "";
+    private NewCollaboratorModal newCollaboratorModal;
     private HashSet<Collaborator> selectedCollaborators = new();
 
     //scheduler variables
@@ -131,6 +124,7 @@
 
     private async Task<GridDataProviderResult<Collaborator>> ListCollaborators(GridDataProviderRequest<Collaborator> request)
     {
+        // TO DO adicionar esta logica para dentro do serviço
         string sortString = "";
         SortDirection sortDirection = SortDirection.None;
 
@@ -155,6 +149,7 @@
 
     private async Task AddCollaborator()
     {
+        var newCollaboratorName = newCollaboratorModal.newCollaboratorName;
         if (!string.IsNullOrWhiteSpace(newCollaboratorName))
         {
             var newCollaboratorRequest = new NewCollaboratorRequest()
@@ -168,7 +163,7 @@
                 ShowToast(ToastType.Success, "Novo Colaborador", "Novo colaborador adicionado com sucesso!");
                 await LoadCollaborators();
                 await collaboratorsGridRef.RefreshDataAsync();
-                await OnHideNewCollaboratorModalClick();
+                await HideNewCollaboratorModal();
             }
             else
             {
@@ -188,7 +183,7 @@
 
         if (response.Success)
         {
-            ShowToast(ToastType.Success, "Remove Collaborators", "Collaborators removed successfully.");
+            ShowToast(ToastType.Success, "Remover Colaborador", "Colaborador(es) removido(s) com sucesso.");
             await LoadCollaborators();
             await collaboratorsGridRef.RefreshDataAsync();
             selectedCollaborators = new();
@@ -201,7 +196,7 @@
             {
                 foreach (var collaboratorName in response.NotFoundCollaborators)
                 {
-                    ShowToast(ToastType.Danger, "Remove Collaborators", $"Collaborator '{collaboratorName}' was not found.");
+                    ShowToast(ToastType.Danger, "Remover Colaborador", $"Collaborador '{collaboratorName}' não encontrado.");
                 }
             }
         }
@@ -209,21 +204,14 @@
 
     #region Modals, Dialogs and Toasts
 
-    private async Task OnShowNewCollaboratorModalClick()
+    private async Task ShowNewCollaboratorModal()
     {
-        clearNewCollaboratorName();
-        await modalNewCollaborator?.ShowAsync();
+        await newCollaboratorModal.OnShowNewCollaboratorModalClick();
     }
 
-    private async Task OnHideNewCollaboratorModalClick()
+    private async Task HideNewCollaboratorModal()
     {
-        clearNewCollaboratorName();
-        await modalNewCollaborator?.HideAsync();
-    }
-
-    private void clearNewCollaboratorName()
-    {
-        newCollaboratorName = "";
+        await newCollaboratorModal.OnHideNewCollaboratorModalClick();
     }
 
     private async Task ShowConfirmationAsync()

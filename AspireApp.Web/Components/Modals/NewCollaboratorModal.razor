@@ -1,0 +1,40 @@
+﻿<!-- NewCollaboratorModal.razor -->
+<Modal @ref="modalNewCollaborator" Title="Adicionar colaborador" IsVerticallyCentered="true">
+    <BodyTemplate>
+        <div class="mb-3">
+            <label for="collaboratorName">Nome:</label>
+            <InputText id="newCollaboratorName"
+                       @bind-Value="newCollaboratorName"
+                       placeholder="João Silva"
+                       class="form-control" />
+        </div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideNewCollaboratorModalClick">Cancelar</Button>
+        <Button Color="ButtonColor.Primary" Disabled="string.IsNullOrEmpty(newCollaboratorName)" @onclick="AddCollaborator">Adicionar</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private Modal modalNewCollaborator;
+    public string newCollaboratorName;
+
+    [Parameter] public EventCallback AddCollaborator { get; set; }
+
+    public async Task OnShowNewCollaboratorModalClick()
+    {
+        clearNewCollaboratorName();
+        await modalNewCollaborator?.ShowAsync();
+    }
+
+    public async Task OnHideNewCollaboratorModalClick()
+    {
+        clearNewCollaboratorName();
+        await modalNewCollaborator?.HideAsync();
+    }
+
+    private void clearNewCollaboratorName()
+    {
+        newCollaboratorName = "";
+    }
+}
