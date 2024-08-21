@@ -55,7 +55,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <CardTitle>Calendário</CardTitle>
                         <div>
-                            <Button Color="ButtonColor.Primary" Type="BlazorBootstrap.ButtonType.Link" >Nova Marcação</Button>
+                            <Button Color="ButtonColor.Primary" @onclick="ShowNewAppointmentModal" Type="BlazorBootstrap.ButtonType.Link">Nova Marcação</Button>
                         </div>
                     </div>
                     <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
@@ -73,7 +73,11 @@
 </div>
 
 <NewCollaboratorModal @ref="newCollaboratorModal" 
-                      AddCollaborator="AddCollaborator" />
+                      LoadCollaborators="LoadCollaborators" 
+                      ShowToast="ExternalShowToast"
+                      collaboratorsGridRef="collaboratorsGridRef"/> 
+
+<NewAppointmentModal @ref="newAppointmentModal" />
 
 <ConfirmDialog @ref="removeCollaboratorsDialog" />
 
@@ -94,6 +98,7 @@
     //scheduler variables
     RadzenScheduler<Appointment> scheduler;
     Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
+    private NewAppointmentModal newAppointmentModal;
 
     IList<Appointment> appointments = new List<Appointment>
     {
@@ -147,30 +152,7 @@
         return await Task.FromResult(new GridDataProviderResult<Collaborator> { Data = result.Item1, TotalCount = result.Item2 });
     }
 
-    private async Task AddCollaborator()
-    {
-        var newCollaboratorName = newCollaboratorModal.newCollaboratorName;
-        if (!string.IsNullOrWhiteSpace(newCollaboratorName))
-        {
-            var newCollaboratorRequest = new NewCollaboratorRequest()
-                {
-                    Name = newCollaboratorName
-                };
-
-            var response = await CollaboratorService.AddCollaboratorAsync(newCollaboratorRequest);
-            if (response.IsSuccessStatusCode)
-            {
-                ShowToast(ToastType.Success, "Novo Colaborador", "Novo colaborador adicionado com sucesso!");
-                await LoadCollaborators();
-                await collaboratorsGridRef.RefreshDataAsync();
-                await HideNewCollaboratorModal();
-            }
-            else
-            {
-                ShowToast(ToastType.Danger, "Novo Colaborador", "Erro a adicionar novo colaborador");
-            }
-        }        
-    }
+    
 
     private async Task RemoveCollaborators()
     {
@@ -214,6 +196,11 @@
         await newCollaboratorModal.OnHideNewCollaboratorModalClick();
     }
 
+    private async Task ShowNewAppointmentModal()
+    {
+        await newAppointmentModal.OnShowNewAppointmentModalClick();
+    }
+
     private async Task ShowConfirmationAsync()
     {
         string collaboratorNames = string.Join(", ", selectedCollaborators.Select(c => c.Name));
@@ -242,6 +229,7 @@
             Message = message,
         };
 
+    private void ExternalShowToast((ToastType toastType, string title, string message) toastData) => ShowToast(toastData.toastType, toastData.title, toastData.message);
     #endregion
 
 

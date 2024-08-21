@@ -25,60 +25,37 @@ public class CollaboratorService
 
     public async Task<(IEnumerable<Collaborator>, int)> ListCollaboratorsAsync(ListCollaboratorsRequest request)
     {
+        return await SendCollaboratorsRequestAsync($"{_baseUri}list-collaborators", request);
+    }
+
+    public async Task<(IEnumerable<Collaborator>, int)> ListCollaboratorsAsync(GetCollaboratorsRequest request)
+    {
+        return await SendCollaboratorsRequestAsync($"{_baseUri}filtered-collaborators", request);
+    }
+
+    private async Task<(IEnumerable<Collaborator>, int)> SendCollaboratorsRequestAsync<TRequest>(string url, TRequest request)
+    {
         try
         {
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30))) // Setting a timeout of 30 seconds
             {
-                var response = await _httpClient.PostAsJsonAsync($"{_baseUri}list-collaborators", request, cts.Token);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new HttpRequestException($"Request failed with status code {response.StatusCode}");
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                if (string.IsNullOrWhiteSpace(content))
-                {
-                    throw new HttpRequestException("Received an empty response from the server.");
-                }
-
-                JObject jsonResponse;
-                try
-                {
-                    jsonResponse = JObject.Parse(content);
-                }
-                catch (JsonException ex)
-                {
-                    throw new HttpRequestException("Failed to parse JSON response.", ex);
-                }
-
-                if (jsonResponse["collaborators"] == null || jsonResponse["totalCount"] == null)
-                {
-                    throw new HttpRequestException("Response JSON does not contain the expected fields.");
-                }
-
-                var collaborators = jsonResponse["collaborators"].ToObject<IEnumerable<Collaborator>>();
-                var totalCount = jsonResponse["totalCount"].ToObject<int>();
-
-                return (collaborators, totalCount);
+                var response = await _httpClient.PostAsJsonAsync(url, request, cts.Token);
+                return await ParseCollaboratorsResponse(response);
             }
         }
         catch (TaskCanceledException ex) when (!ex.CancellationToken.IsCancellationRequested)
         {
             throw new HttpRequestException("Request timed out.", ex);
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw;
         }
     }
-
 
     public async Task<HttpResponseMessage> AddCollaboratorAsync(NewCollaboratorRequest request)
     {
@@ -117,5 +94,42 @@ public class CollaboratorService
                 Message = $"Unexpected error: {response.StatusCode}. Details: {errorContent}"
             };
         }
+    }
+
+
+    private async Task<(IEnumerable<Collaborator>, int)> ParseCollaboratorsResponse(HttpResponseMessage response)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Request failed with status code {response.StatusCode}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            throw new HttpRequestException("Received an empty response from the server.");
+        }
+
+        JObject jsonResponse;
+        try
+        {
+            jsonResponse = JObject.Parse(content);
+        }
+        catch (JsonException ex)
+        {
+            throw new HttpRequestException("Failed to parse JSON response.", ex);
+        }
+
+        if (jsonResponse["collaborators"] == null || jsonResponse["totalCount"] == null)
+        {
+            throw new HttpRequestException("Response JSON does not contain the expected fields.");
+        }
+
+        var collaborators = jsonResponse["collaborators"].ToObject<IEnumerable<Collaborator>>();
+        var totalCount = jsonResponse["totalCount"].ToObject<int>();
+
+        return (collaborators, totalCount);
     }
 }

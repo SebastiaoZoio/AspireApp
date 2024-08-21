@@ -1,10 +1,19 @@
-﻿<!-- NewCollaboratorModal.razor -->
+﻿@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@attribute [OutputCache(Duration = 5)]
+
+@inject Services.CollaboratorService CollaboratorService
+@using Services.Models
+@using Services.Requests
+
 <Modal @ref="modalNewCollaborator" Title="Adicionar colaborador" IsVerticallyCentered="true">
     <BodyTemplate>
         <div class="mb-3">
             <label for="collaboratorName">Nome:</label>
-            <InputText id="newCollaboratorName"
-                       @bind-Value="newCollaboratorName"
+            <input id="newCollaboratorName"
+                       @bind="newCollaboratorName"
+                       @bind:event="oninput"
+                       @onkeyup="StateHasChanged"
                        placeholder="João Silva"
                        class="form-control" />
         </div>
@@ -15,11 +24,15 @@
     </FooterTemplate>
 </Modal>
 
+
 @code {
     private Modal modalNewCollaborator;
     public string newCollaboratorName;
+    private bool isAddButtonDisabled = true;
 
-    [Parameter] public EventCallback AddCollaborator { get; set; }
+    [Parameter] public EventCallback<(ToastType, string, string)> ShowToast { get; set; }
+    [Parameter] public EventCallback LoadCollaborators { get; set; }
+    [Parameter] public Grid<Collaborator>? collaboratorsGridRef { get; set; }    
 
     public async Task OnShowNewCollaboratorModalClick()
     {
@@ -36,5 +49,36 @@
     private void clearNewCollaboratorName()
     {
         newCollaboratorName = "";
+        isAddButtonDisabled = true;
+    }
+
+    private void onTextInput()
+    {
+        StateHasChanged(); 
+    }
+
+    private async Task AddCollaborator()
+    {
+
+        if (!string.IsNullOrWhiteSpace(newCollaboratorName))
+        {
+            var newCollaboratorRequest = new NewCollaboratorRequest()
+                {
+                    Name = newCollaboratorName
+                };
+
+            var response = await CollaboratorService.AddCollaboratorAsync(newCollaboratorRequest);
+            if (response.IsSuccessStatusCode)
+            {
+                await ShowToast.InvokeAsync((ToastType.Success, "Novo Colaborador", "Novo colaborador adicionado com sucesso!"));
+                await LoadCollaborators.InvokeAsync();
+                await collaboratorsGridRef.RefreshDataAsync();
+                await OnHideNewCollaboratorModalClick();
+            }
+            else
+            {
+                await ShowToast.InvokeAsync((ToastType.Danger, "Novo Colaborador", "Erro a adicionar novo colaborador"));
+            }
+        }
     }
 }

@@ -1,13 +1,16 @@
 ﻿@using Services.Models
+@using Services.Requests
+@inject Services.CollaboratorService CollaboratorService
+
 
 <Modal @ref="modalNewAppointment" Title="Nova Marcação" IsVerticallyCentered="true">
     <BodyTemplate>
         <div class="mb-3">
             <label for="collaboratorComboBox">Colaborador:</label>
-            @* <BlazorBootstrap.AutoComplete @bind-Value="selectedCollaborator"
+            <BlazorBootstrap.AutoComplete @bind-Value="selectedCollaborator"
                                           DataProvider="CollaboratorsDataProvider"
                                           Placeholder="Selecione um colaborador"
-                                          OnChanged="(Collaborator collaborator) => OnAutoCompleteChanged(collaborator)" /> *@
+                                          OnChanged="(Collaborator collaborator) => OnAutoCompleteChanged(collaborator)" />
         </div>
         <div class="mb-3">
             <label for="appointmentDate">Data da Consulta:</label>
@@ -29,7 +32,7 @@
     private string selectedCollaborator;
     private DateTime? appointmentDate;
 
-    // [Parameter] public EventCallback<string, DateTime?> AddAppointment { get; set; }
+    //[Parameter] public EventCallback<string, DateTime?> AddAppointment { get; set; }
     [Parameter] public List<string> collaborators { get; set; }
 
     public async Task OnShowNewAppointmentModalClick()
@@ -52,9 +55,21 @@
 
     private bool IsFormInvalid => string.IsNullOrEmpty(selectedCollaborator) || !appointmentDate.HasValue;
 
-    // private async Task<AutoCompleteDataProviderResult<Collaborator>> CustomersDataProvider(AutoCompleteDataProviderRequest<Collaborator> request)
-    // {
-    //     var collaborators = await _customerService.GetCustomers(request.Filter, request.CancellationToken); // API call
-    //     return await Task.FromResult(new AutoCompleteDataProviderResult<Collaborator> { Data = customers, TotalCount = customers.Count() });
-    // }
+    private async Task<AutoCompleteDataProviderResult<Collaborator>> CollaboratorsDataProvider(AutoCompleteDataProviderRequest<Collaborator> request)
+    {
+        var getCollaboratorsRequest = new GetCollaboratorsRequest()
+            {
+                Filter = request.Filter
+            };
+        var response = await CollaboratorService.ListCollaboratorsAsync(getCollaboratorsRequest);
+        return await Task.FromResult(new AutoCompleteDataProviderResult<Collaborator> { Data = response.Item1, TotalCount = response.Item2 });
+    }
+
+    private void OnAutoCompleteChanged(Collaborator collaborator)
+    {
+        // TODO: handle your own logic
+
+        // NOTE: do null check
+        Console.WriteLine($"'{collaborator?.Name}' selected.");
+    }
 }
