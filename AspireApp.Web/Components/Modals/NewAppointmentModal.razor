@@ -7,8 +7,9 @@
     <BodyTemplate>
         <div class="mb-3">
             <label for="collaboratorComboBox">Colaborador:</label>
-            <BlazorBootstrap.AutoComplete @bind-Value="selectedCollaborator"
+            <BlazorBootstrap.AutoComplete @bind-Value="selectedCollaboratorName"
                                           DataProvider="CollaboratorsDataProvider"
+                                          PropertyName="Name"
                                           Placeholder="Selecione um colaborador"
                                           OnChanged="(Collaborator collaborator) => OnAutoCompleteChanged(collaborator)" />
         </div>
@@ -29,7 +30,8 @@
 
 @code {
     private Modal modalNewAppointment;
-    private string selectedCollaborator;
+    private Collaborator selectedCollaborator;
+    private string selectedCollaboratorName = string.Empty;
     private DateTime? appointmentDate;
 
     //[Parameter] public EventCallback<string, DateTime?> AddAppointment { get; set; }
@@ -49,11 +51,12 @@
 
     private void ClearForm()
     {
-        selectedCollaborator = string.Empty;
+        selectedCollaborator = null;
+        selectedCollaboratorName = string.Empty;
         appointmentDate = null;
     }
 
-    private bool IsFormInvalid => string.IsNullOrEmpty(selectedCollaborator) || !appointmentDate.HasValue;
+    private bool IsFormInvalid => string.IsNullOrEmpty(selectedCollaborator.Name) || !appointmentDate.HasValue;
 
     private async Task<AutoCompleteDataProviderResult<Collaborator>> CollaboratorsDataProvider(AutoCompleteDataProviderRequest<Collaborator> request)
     {
@@ -67,9 +70,10 @@
 
     private void OnAutoCompleteChanged(Collaborator collaborator)
     {
-        // TODO: handle your own logic
-
-        // NOTE: do null check
-        Console.WriteLine($"'{collaborator?.Name}' selected.");
+        if (collaborator != null)
+        {
+            selectedCollaborator = collaborator;
+            Console.WriteLine($"'{collaborator?.Name}' selected.");
+        }        
     }
 }

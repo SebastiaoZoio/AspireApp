@@ -2,7 +2,7 @@
 
 namespace AspireApp.ApiService.Features.Collaborators.Responses;
 
-public class ListCollaboratorsResponse
+public class ListOfCollaboratorsResponse
 {
     public IEnumerable<CollaboratorDto> Collaborators { get; set; }
     public int TotalCount { get; set; }

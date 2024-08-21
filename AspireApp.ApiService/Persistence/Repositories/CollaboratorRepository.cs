@@ -52,7 +52,7 @@ public class CollaboratorRepository : ICollaboratorRepository
             .ToListAsync();
     }
 
-    public async Task<ListCollaboratorsResponse> ListAsync(IEnumerable<FilterItem> filters, int pageNumber, int pageSize, string sortString, SortDirection sortDirection)
+    public async Task<ListOfCollaboratorsResponse> ListAsync(IEnumerable<FilterItem> filters, int pageNumber, int pageSize, string sortString, SortDirection sortDirection)
     {
         // Get active collaborators only
         var query = _context.Collaborators.Where(c => c.IsActive).AsQueryable();
@@ -78,14 +78,36 @@ public class CollaboratorRepository : ICollaboratorRepository
         var data = await query.Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive)).ToListAsync();
 
         // Create response
-        return new ListCollaboratorsResponse
+        return new ListOfCollaboratorsResponse
         {
             Collaborators = data,
             TotalCount = data.Count()
         };
     }
 
-    private IQueryable<Collaborator> GetFilteredQuery(IQueryable<Collaborator> query, FilterItem filter)
+    public async Task<ListOfCollaboratorsResponse> GetFilteredAsync(FilterItem? filter)
+    {
+        // Get active collaborators only
+        var query = _context.Collaborators.Where(c => c.IsActive).AsQueryable();
+
+        // Apply filters
+        if (filter != null)
+        {
+            query = GetFilteredQuery(query, filter);
+        }
+
+        // Fetch data
+        var data = await query.Select(c => new CollaboratorDto(c.Id, c.Name, c.IsActive)).ToListAsync();
+
+        // Create response
+        return new ListOfCollaboratorsResponse
+        {
+            Collaborators = data,
+            TotalCount = data.Count()
+        };
+    }
+
+        private IQueryable<Collaborator> GetFilteredQuery(IQueryable<Collaborator> query, FilterItem filter)
     {
         switch (filter.Operator)
         {

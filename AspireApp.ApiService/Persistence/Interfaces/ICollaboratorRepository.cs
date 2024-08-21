@@ -13,6 +13,7 @@ namespace AspireApp.ApiService.Persistence.Interfaces
         Task DeleteAsync(Collaborator collaborator);
         Task SaveChangesAsync(CancellationToken cancellationToken);
         Task<IEnumerable<CollaboratorDto>> GetAllAsync();
-        Task<ListCollaboratorsResponse> ListAsync(IEnumerable<FilterItem> filters, int pageNumber, int pageSize, string sortString, SortDirection sortDirection);
+        Task<ListOfCollaboratorsResponse> ListAsync(IEnumerable<FilterItem> filters, int pageNumber, int pageSize, string sortString, SortDirection sortDirection);
+        Task<ListOfCollaboratorsResponse> GetFilteredAsync(FilterItem? filter);
     }
 }

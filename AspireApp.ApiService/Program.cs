@@ -52,6 +52,12 @@ app.MapGet("/collaborators", async (ISender mediatr) =>
     return Results.Ok(collaborators);
 });
 
+app.MapPost("/filtered-collaborators", async ([FromBody] GetFilteredCollaboratorsQuery query, ISender mediatr) =>
+{
+    var collaboratorsListResponse = await mediatr.Send(query);
+    return Results.Ok(collaboratorsListResponse);
+});
+
 app.MapPost("/list-collaborators", async ([FromBody] ListCollaboratorsQuery query, ISender mediatr) =>
 {
     var collaboratorsListResponse = await mediatr.Send(query);
