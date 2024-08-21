@@ -152,8 +152,6 @@
         return await Task.FromResult(new GridDataProviderResult<Collaborator> { Data = result.Item1, TotalCount = result.Item2 });
     }
 
-    
-
     private async Task RemoveCollaborators()
     {
         var request = new DeleteCollaboratorsRequest
@@ -172,14 +170,16 @@
         }
         else
         {
-            //ShowToast(ToastType.Danger, "Remove Collaborators", response.Message);
-
             if (response.NotFoundCollaborators.Any())
             {
                 foreach (var collaboratorName in response.NotFoundCollaborators)
                 {
                     ShowToast(ToastType.Danger, "Remover Colaborador", $"Collaborador '{collaboratorName}' não encontrado.");
                 }
+            }
+            else
+            {
+                ShowToast(ToastType.Danger, "Remove Collaborators", response.Message);
             }
         }
     }
