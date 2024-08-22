@@ -5,34 +5,53 @@
 
 <Modal @ref="modalNewAppointment" Title="Nova Marcação" IsVerticallyCentered="true">
     <BodyTemplate>
-        <div class="mb-3">
-            <label for="collaboratorComboBox">Colaborador:</label>
-            <BlazorBootstrap.AutoComplete @bind-Value="selectedCollaboratorName"
-                                          DataProvider="CollaboratorsDataProvider"
-                                          PropertyName="Name"
-                                          Placeholder="Selecione um colaborador"
-                                          OnChanged="(Collaborator collaborator) => OnAutoCompleteChanged(collaborator)" />
-        </div>
-        <div class="mb-3">
-            <label for="appointmentDate">Data da Consulta:</label>
-            <RadzenDatePicker id="appointmentDate"
-                              @bind-Value="appointmentDate"
-                              DateFormat="dd/MM/yyyy"
-                              Placeholder="Selecione uma data"
-                              Class="form-control" />
+        <div class="container">
+            <div class="mb-3">
+                <label for="collaboratorComboBox">Colaborador:</label>
+                <BlazorBootstrap.AutoComplete @bind-Value="selectedCollaboratorName"
+                                              DataProvider="CollaboratorsDataProvider"
+                                              PropertyName="Name"
+                                              Placeholder="Selecione um colaborador"
+                                              OnChanged="(Collaborator collaborator) => OnAutoCompleteChanged(collaborator)" 
+                                              class="w-100" />
+            </div>
+            <div class="mb-3">
+                <label for="BeginDate">Data de Início:</label>
+                <RadzenLabel Component="RadzenDatePickerChangeEvent" />
+                <RadzenDatePicker TValue="DateTime?"
+                                  DateFormat="dd/MM/yyyy"
+                                  Value=@beginDate
+                                  Change="@(args => beginDate = args)"
+                                  Name="RadzenDatePickerChangeEvent" 
+                                  class="w-100" />
+            </div>
+            <div class="mb-3">
+                <label for="EndDate">Data de Fim:</label>
+                <RadzenLabel Component="RadzenDatePickerChangeEvent" />
+                <RadzenDatePicker TValue="DateTime?"
+                                  DateFormat="dd/MM/yyyy"
+                                  Value=@endDate
+                                  Min=@beginDate
+                                  Change="@(args => endDate = args)"
+                                  DateRender=@EndDateRender
+                                  Name="RadzenDatePickerChangeEvent" 
+                                  Disabled="beginDate == null"
+                                  class="w-100" />
+            </div>
         </div>
     </BodyTemplate>
     <FooterTemplate>
         <Button Color="ButtonColor.Secondary" @onclick="OnHideNewAppointmentModalClick">Cancelar</Button>
-@*         <Button Color="ButtonColor.Primary" Disabled="@IsFormInvalid" @onclick="AddAppointment">Agendar</Button>
- *@    </FooterTemplate>
+        <Button Color="ButtonColor.Primary" Disabled="@IsFormInvalid" >Agendar</Button>
+    </FooterTemplate>
 </Modal>
 
 @code {
     private Modal modalNewAppointment;
-    private Collaborator selectedCollaborator;
+    private Collaborator selectedCollaborator = new Collaborator();
     private string selectedCollaboratorName = string.Empty;
-    private DateTime? appointmentDate;
+    private DateTime? beginDate;
+    private DateTime? endDate;
 
     //[Parameter] public EventCallback<string, DateTime?> AddAppointment { get; set; }
     [Parameter] public List<string> collaborators { get; set; }
@@ -53,10 +72,10 @@
     {
         selectedCollaborator = null;
         selectedCollaboratorName = string.Empty;
-        appointmentDate = null;
+        beginDate = null;
     }
 
-    private bool IsFormInvalid => string.IsNullOrEmpty(selectedCollaborator.Name) || !appointmentDate.HasValue;
+    private bool IsFormInvalid => string.IsNullOrEmpty(selectedCollaboratorName) || !beginDate.HasValue;
 
     private async Task<AutoCompleteDataProviderResult<Collaborator>> CollaboratorsDataProvider(AutoCompleteDataProviderRequest<Collaborator> request)
     {
@@ -75,5 +94,15 @@
             selectedCollaborator = collaborator;
             Console.WriteLine($"'{collaborator?.Name}' selected.");
         }        
+    }
+
+    void EndDateRender(DateRenderEventArgs args)
+    {        
+        args.Disabled = args.Date < beginDate;
+
+        if (args.Date == beginDate)
+        {
+            args.Attributes.Add("style", "background-color: #ff6d41; border-color: white;");
+        }
     }
 }
