@@ -8,6 +8,7 @@ public class AspireAppDbContext : DbContext
     public AspireAppDbContext(DbContextOptions<AspireAppDbContext> options) : base(options)
     {
     }
-    public DbSet<Collaborator> Collaborators { get; set; }
+    public DbSet<Collaborator> Collaborators { get; set; }  
+    public DbSet<AppointmentType> AppointmentTypes { get; set; }
 
 }

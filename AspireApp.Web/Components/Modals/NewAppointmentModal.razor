@@ -17,24 +17,24 @@
             </div>
             <div class="mb-3">
                 <label for="BeginDate">Data de Início:</label>
-                <RadzenLabel Component="RadzenDatePickerChangeEvent" />
+                <RadzenLabel Component="RadzenBeginDatePickerChangeEvent" />
                 <RadzenDatePicker TValue="DateTime?"
                                   DateFormat="dd/MM/yyyy"
                                   Value=@beginDate
                                   Change="@(args => beginDate = args)"
-                                  Name="RadzenDatePickerChangeEvent" 
+                                  Name="RadzenBeginDatePickerChangeEvent" 
                                   class="w-100" />
             </div>
             <div class="mb-3">
                 <label for="EndDate">Data de Fim:</label>
-                <RadzenLabel Component="RadzenDatePickerChangeEvent" />
+                <RadzenLabel Component="RadzenEndDatePickerChangeEvent" />
                 <RadzenDatePicker TValue="DateTime?"
                                   DateFormat="dd/MM/yyyy"
                                   Value=@endDate
                                   Min=@beginDate
                                   Change="@(args => endDate = args)"
                                   DateRender=@EndDateRender
-                                  Name="RadzenDatePickerChangeEvent" 
+                                  Name="RadzenEndDatePickerChangeEvent" 
                                   Disabled="beginDate == null"
                                   class="w-100" />
             </div>
@@ -73,6 +73,7 @@
         selectedCollaborator = null;
         selectedCollaboratorName = string.Empty;
         beginDate = null;
+        endDate = null;
     }
 
     private bool IsFormInvalid => string.IsNullOrEmpty(selectedCollaboratorName) || !beginDate.HasValue;
@@ -102,7 +103,9 @@
 
         if (args.Date == beginDate)
         {
-            args.Attributes.Add("style", "background-color: #ff6d41; border-color: white;");
+            args.Attributes.Add("class", "highlight-begin-date");
+            args.Attributes.Add("style", "color: black");
         }
     }
+
 }

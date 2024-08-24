@@ -1,0 +1,5 @@
+Open AppService in terminal
+
+run dotnet ef migrations add [name]
+
+run dotnet ef database update
