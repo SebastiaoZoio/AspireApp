@@ -23,6 +23,7 @@ builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSet
 builder.Services.AddScoped(sp => new HttpClient());
 
 builder.Services.AddScoped<CollaboratorService>();
+builder.Services.AddScoped<AppointmentService>();
 
 var app = builder.Build();
      

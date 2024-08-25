@@ -1,19 +1,31 @@
 ﻿@using Services.Models
 @using Services.Requests
 @inject Services.CollaboratorService CollaboratorService
+@inject Services.AppointmentService AppointmentService
 
 
 <Modal @ref="modalNewAppointment" Title="Nova Marcação" IsVerticallyCentered="true">
     <BodyTemplate>
         <div class="container">
             <div class="mb-3">
-                <label for="collaboratorComboBox">Colaborador:</label>
+                <label for="collaboratorComboBox">Nome do Colaborador:</label>
                 <BlazorBootstrap.AutoComplete @bind-Value="selectedCollaboratorName"
                                               DataProvider="CollaboratorsDataProvider"
                                               PropertyName="Name"
-                                              Placeholder="Selecione um colaborador"
+                                              Placeholder="João Silva"
                                               OnChanged="(Collaborator collaborator) => OnAutoCompleteChanged(collaborator)" 
                                               class="w-100" />
+            </div>
+            <div class="mb-3">
+                <label for="AppointmentTypeDropdown">Tipo:</label>
+                <RadzenDropDown @bind-Value=@selectedAppointmentTypeId
+                                    Data=@appointmentTypes 
+                                    TextProperty="@nameof(AppointmentType.Name)" 
+                                    ValueProperty="Id" 
+                                    AllowClear=true 
+                                    Placeholder="Selecione o tipo de marcação" 
+                                    Name="AppointmentTypeDropdown"
+                                    class="w-100"/>
             </div>
             <div class="mb-3">
                 <label for="BeginDate">Data de Início:</label>
@@ -48,6 +60,8 @@
 
 @code {
     private Modal modalNewAppointment;
+    private IEnumerable<AppointmentType> appointmentTypes = new List<AppointmentType>();
+    private int? selectedAppointmentTypeId;
     private Collaborator selectedCollaborator = new Collaborator();
     private string selectedCollaboratorName = string.Empty;
     private DateTime? beginDate;
@@ -55,6 +69,11 @@
 
     //[Parameter] public EventCallback<string, DateTime?> AddAppointment { get; set; }
     [Parameter] public List<string> collaborators { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        appointmentTypes = await AppointmentService.GetAppointmentTypes();
+    }
 
     public async Task OnShowNewAppointmentModalClick()
     {
