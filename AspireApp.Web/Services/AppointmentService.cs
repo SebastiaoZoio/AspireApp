@@ -26,4 +26,11 @@ public class AppointmentService
         var response = await _httpClient.PostAsJsonAsync($"{_baseUri}appointment", request);
         return response;
     }
+
+    public async Task<HttpResponseMessage> ListAppointmentsAsync()
+    {
+//TODO
+        var response = await _httpClient.GetAsync($"{_baseUri}appointments");
+        return response;
+    }
 }

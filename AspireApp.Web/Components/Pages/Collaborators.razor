@@ -4,6 +4,7 @@
 @attribute [OutputCache(Duration = 5)]
 
 @inject Services.CollaboratorService CollaboratorService
+@inject Services.AppointmentService AppointmentService
 @using AspireApp.Web.Components.Modals
 @using Services.Models
 @using Services.Requests
@@ -115,6 +116,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadCollaborators();
+        await LoadAppointments();
         isLoading = false;
     }
 
@@ -269,6 +271,11 @@
     #endregion
 
     #region Scheduler Functions
+
+    private async Task LoadAppointments()
+    {
+        AppointmentService.ListAppointmentsAsync();
+    }
 
     void OnSlotRender(SchedulerSlotRenderEventArgs args)
     {
