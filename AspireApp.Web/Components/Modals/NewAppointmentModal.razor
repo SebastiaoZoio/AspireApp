@@ -54,7 +54,7 @@
     </BodyTemplate>
     <FooterTemplate>
         <Button Color="ButtonColor.Secondary" @onclick="OnHideNewAppointmentModalClick">Cancelar</Button>
-        <Button Color="ButtonColor.Primary" Disabled="@IsFormInvalid" >Agendar</Button>
+        <Button Color="ButtonColor.Primary" Disabled="@IsFormInvalid" @onclick="@AddAppointment">Agendar</Button>
     </FooterTemplate>
 </Modal>
 
@@ -67,8 +67,7 @@
     private DateTime? beginDate;
     private DateTime? endDate;
 
-    //[Parameter] public EventCallback<string, DateTime?> AddAppointment { get; set; }
-    [Parameter] public List<string> collaborators { get; set; }
+    [Parameter] public EventCallback<(ToastType, string, string)> ShowToast { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -87,6 +86,27 @@
         await modalNewAppointment?.HideAsync();
     }
 
+    public async Task AddAppointment()
+    {
+        var request = new NewAppointmentRequest()
+            {
+                CollaboratorId = selectedCollaborator.Id,
+                AppointmentTypeId = selectedAppointmentTypeId.Value,
+                BeginDate = beginDate.Value,
+                EndDate = endDate.Value
+            };
+        var response = await AppointmentService.NewAppointmentAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            await ShowToast.InvokeAsync((ToastType.Success, "Nova Marcação", "Novo marcação criada com sucesso!"));
+            await OnHideNewAppointmentModalClick();
+        }
+        else
+        {
+            await ShowToast.InvokeAsync((ToastType.Danger, "Nova Marcação", "Erro a criar marcação."));
+        }
+    }
+
     private void ClearForm()
     {
         selectedCollaborator = null;
@@ -96,7 +116,7 @@
         endDate = null;
     }
 
-    private bool IsFormInvalid => string.IsNullOrEmpty(selectedCollaboratorName) || !beginDate.HasValue;
+    private bool IsFormInvalid => selectedCollaborator == null || selectedAppointmentTypeId == null || !beginDate.HasValue || !endDate.HasValue;
 
     private async Task<AutoCompleteDataProviderResult<Collaborator>> CollaboratorsDataProvider(AutoCompleteDataProviderRequest<Collaborator> request)
     {
@@ -117,7 +137,7 @@
         }        
     }
 
-    void EndDateRender(DateRenderEventArgs args)
+    private void EndDateRender(DateRenderEventArgs args)
     {        
         args.Disabled = args.Date < beginDate;
 
