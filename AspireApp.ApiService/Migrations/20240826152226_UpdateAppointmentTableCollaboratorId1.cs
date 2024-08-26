@@ -6,28 +6,27 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AspireApp.ApiService.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdatedFKsAppointmentTable : Migration
+    public partial class UpdateAppointmentTableCollaboratorId1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<Guid>(
-                name: "CollaboratorId",
+            migrationBuilder.AddColumn<Guid>(
+                name: "NewCollaboratorId",
                 table: "Appointments",
                 type: "uniqueidentifier",
                 nullable: false,
-                oldClrType: typeof(int),
-                oldType: "int");
+                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
 
             migrationBuilder.CreateIndex(
-                name: "IX_Appointments_CollaboratorId",
+                name: "IX_Appointments_NewCollaboratorId",
                 table: "Appointments",
-                column: "CollaboratorId");
+                column: "NewCollaboratorId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Appointments_Collaborators_CollaboratorId",
+                name: "FK_Appointments_Collaborators_NewCollaboratorId",
                 table: "Appointments",
-                column: "CollaboratorId",
+                column: "NewCollaboratorId",
                 principalTable: "Collaborators",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
@@ -37,20 +36,16 @@ namespace AspireApp.ApiService.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Appointments_Collaborators_CollaboratorId",
+                name: "FK_Appointments_Collaborators_NewCollaboratorId",
                 table: "Appointments");
 
             migrationBuilder.DropIndex(
-                name: "IX_Appointments_CollaboratorId",
+                name: "IX_Appointments_NewCollaboratorId",
                 table: "Appointments");
 
-            migrationBuilder.AlterColumn<int>(
-                name: "CollaboratorId",
-                table: "Appointments",
-                type: "int",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier");
+            migrationBuilder.DropColumn(
+                name: "NewCollaboratorId",
+                table: "Appointments");
         }
     }
 }

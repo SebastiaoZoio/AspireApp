@@ -9,7 +9,7 @@ namespace AspireApp.ApiService.Domain
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [ForeignKey("Collaborator")]
-        public Guid CollaboratorId { get; set; } = default!;
+        public Guid CollaboratorId { get; set; }
 
         [ForeignKey("AppointmentType")]
         public int AppointmentTypeId { get; set; }

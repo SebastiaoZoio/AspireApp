@@ -16,7 +16,7 @@ public class AppointmentRepository : IAppointmentRepository
     public async Task<IEnumerable<Appointment>> GetAllAsync()
     {
         return await _context.Appointments
-            .Include(a => a.Collaborator) 
+            //.Include(a => a.Collaborator) 
             .Include(a => a.AppointmentType) 
             .ToListAsync();
     }
@@ -24,7 +24,7 @@ public class AppointmentRepository : IAppointmentRepository
     public async Task<Appointment> GetByIdAsync(Guid id)
     {
         return await _context.Appointments
-            .Include(a => a.Collaborator) 
+            //.Include(a => a.Collaborator) 
             .Include(a => a.AppointmentType) 
             .FirstOrDefaultAsync(a => a.Id == id);
     }

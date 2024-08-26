@@ -37,6 +37,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapCollaboratorEndpoints();
+app.MapAppointmentEndpoints();
 app.MapAppointmentTypeEndpoints();
 
 app.UseHttpsRedirection();

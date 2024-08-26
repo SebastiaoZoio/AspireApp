@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AspireApp.ApiService.Migrations
 {
     [DbContext(typeof(AspireAppDbContext))]
-    [Migration("20240826144658_UpdatedFKsAppointmentTable")]
-    partial class UpdatedFKsAppointmentTable
+    [Migration("20240826152356_UpdateAppointmentTableCollaboratorId2")]
+    partial class UpdateAppointmentTableCollaboratorId2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,17 +37,17 @@ namespace AspireApp.ApiService.Migrations
                     b.Property<DateTime>("BeginDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("CollaboratorId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid>("NewCollaboratorId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AppointmentTypeId");
 
-                    b.HasIndex("CollaboratorId");
+                    b.HasIndex("NewCollaboratorId");
 
                     b.ToTable("Appointments");
                 });
@@ -97,7 +97,7 @@ namespace AspireApp.ApiService.Migrations
 
                     b.HasOne("AspireApp.ApiService.Domain.Collaborator", "Collaborator")
                         .WithMany()
-                        .HasForeignKey("CollaboratorId")
+                        .HasForeignKey("NewCollaboratorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
