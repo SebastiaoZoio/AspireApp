@@ -4,6 +4,7 @@ using AspireApp.ApiService.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AspireApp.ApiService.Migrations
 {
     [DbContext(typeof(AspireAppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240826140828_AddedAppointmentsTable")]
+    partial class AddedAppointmentsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,8 +37,8 @@ namespace AspireApp.ApiService.Migrations
                     b.Property<DateTime>("BeginDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("CollaboratorId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("CollaboratorId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -43,8 +46,6 @@ namespace AspireApp.ApiService.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AppointmentTypeId");
-
-                    b.HasIndex("CollaboratorId");
 
                     b.ToTable("Appointments");
                 });
@@ -87,20 +88,17 @@ namespace AspireApp.ApiService.Migrations
             modelBuilder.Entity("AspireApp.ApiService.Domain.Appointment", b =>
                 {
                     b.HasOne("AspireApp.ApiService.Domain.AppointmentType", "AppointmentType")
-                        .WithMany()
+                        .WithMany("Appointments")
                         .HasForeignKey("AppointmentTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AspireApp.ApiService.Domain.Collaborator", "Collaborator")
-                        .WithMany()
-                        .HasForeignKey("CollaboratorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("AppointmentType");
+                });
 
-                    b.Navigation("Collaborator");
+            modelBuilder.Entity("AspireApp.ApiService.Domain.AppointmentType", b =>
+                {
+                    b.Navigation("Appointments");
                 });
 #pragma warning restore 612, 618
         }
