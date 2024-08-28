@@ -28,7 +28,6 @@
 @code {
     private Modal modalNewCollaborator;
     public string newCollaboratorName = string.Empty;
-    private bool isAddButtonDisabled = true;
 
     [Parameter] public EventCallback<(ToastType, string, string)> ShowToast { get; set; }
     [Parameter] public EventCallback LoadCollaborators { get; set; }
@@ -49,7 +48,6 @@
     private void clearNewCollaboratorName()
     {
         newCollaboratorName = string.Empty;
-        isAddButtonDisabled = true;
     }
 
     private async Task AddCollaborator()

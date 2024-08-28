@@ -7,6 +7,8 @@ using System.Text.Json;
 using AspireApp.Web.Services.Responses;
 using AspireApp.Web.Services.Results;
 using System.Net;
+using AspireApp.Web.Services.Exceptions;
+using AspireApp.Web.Services.Enums;
 
 namespace AspireApp.Web.Services;
 
@@ -21,17 +23,17 @@ public class CollaboratorService
         _baseUri = settings.Value.BaseUri;
     }
 
-    public async Task<(IEnumerable<Collaborator>, int)> ListCollaboratorsAsync(ListCollaboratorsRequest request)
+    public async Task<ListCollaboratorsResult> ListCollaboratorsAsync(ListCollaboratorsRequest request)
     {
         return await SendCollaboratorsRequestAsync($"{_baseUri}list-collaborators", request);
     }
 
-    public async Task<(IEnumerable<Collaborator>, int)> ListCollaboratorsAsync(GetCollaboratorsRequest request)
+    public async Task<ListCollaboratorsResult> ListCollaboratorsAsync(GetCollaboratorsRequest request)
     {
         return await SendCollaboratorsRequestAsync($"{_baseUri}filtered-collaborators", request);
     }
 
-    private async Task<(IEnumerable<Collaborator>, int)> SendCollaboratorsRequestAsync<TRequest>(string url, TRequest request)
+    private async Task<ListCollaboratorsResult> SendCollaboratorsRequestAsync<TRequest>(string url, TRequest request)
     {
         try
         {
@@ -43,15 +45,20 @@ public class CollaboratorService
         }
         catch (TaskCanceledException ex) when (!ex.CancellationToken.IsCancellationRequested)
         {
-            throw new HttpRequestException("Request timed out.", ex);
+            throw new WebApiException("Request timed out.", ex, ErrorType.Timeout);            
         }
-        catch (HttpRequestException)
+        catch (WebApiException ex)
         {
-            throw;
+            return new ListCollaboratorsResult()
+            {
+                Success = false,
+                ErrorMessage = ex.Message,
+                ErrorType = ex.ErrorType
+            };
         }
         catch (Exception)
         {
-            throw;
+            return new ListCollaboratorsResult() { Success = false};
         }
     }
 
@@ -95,19 +102,19 @@ public class CollaboratorService
     }
 
 
-    private async Task<(IEnumerable<Collaborator>, int)> ParseCollaboratorsResponse(HttpResponseMessage response)
+    private async Task<ListCollaboratorsResult> ParseCollaboratorsResponse(HttpResponseMessage response)
     {
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException($"Request failed with status code {response.StatusCode}");
+            throw new WebApiException($"Request failed with status code {response.StatusCode}", ErrorType.FailedRequest);
         }
 
         var content = await response.Content.ReadAsStringAsync();
 
         if (string.IsNullOrWhiteSpace(content))
         {
-            throw new HttpRequestException("Received an empty response from the server.");
+            throw new WebApiException("Received an empty response from the server.", ErrorType.EmptyResponse);
         }
 
         JObject jsonResponse;
@@ -117,17 +124,22 @@ public class CollaboratorService
         }
         catch (JsonException ex)
         {
-            throw new HttpRequestException("Failed to parse JSON response.", ex);
+            throw new WebApiException("Failed to parse JSON response.", ex, ErrorType.InvalidResponse);
         }
 
         if (jsonResponse["collaborators"] == null || jsonResponse["totalCount"] == null)
         {
-            throw new HttpRequestException("Response JSON does not contain the expected fields.");
+            throw new WebApiException("Response JSON does not contain the expected fields.", ErrorType.InvalidResponse);
         }
 
+        var result = new ListCollaboratorsResult()
+        {
+            Collaborators = jsonResponse["collaborators"].ToObject<IEnumerable<Collaborator>>(),
+            TotalCount = jsonResponse["totalCount"].ToObject<int>()
+        };
         var collaborators = jsonResponse["collaborators"].ToObject<IEnumerable<Collaborator>>();
         var totalCount = jsonResponse["totalCount"].ToObject<int>();
 
-        return (collaborators, totalCount);
+        return result;
     }
 }

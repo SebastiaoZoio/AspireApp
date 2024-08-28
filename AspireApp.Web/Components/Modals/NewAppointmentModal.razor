@@ -71,7 +71,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        appointmentTypes = await AppointmentService.GetAppointmentTypes();
+        var result = await AppointmentService.GetAppointmentTypesAsync();
+        if (result.Success)
+            appointmentTypes = result.AppointmentTypes;
+        else
+            await ShowToast.InvokeAsync((ToastType.Danger, "Erro", "Erro a obter tipos de marcação."));
     }
 
     public async Task OnShowNewAppointmentModalClick()
@@ -124,8 +128,13 @@
             {
                 Filter = request.Filter
             };
-        var response = await CollaboratorService.ListCollaboratorsAsync(getCollaboratorsRequest);
-        return await Task.FromResult(new AutoCompleteDataProviderResult<Collaborator> { Data = response.Item1, TotalCount = response.Item2 });
+        var result = await CollaboratorService.ListCollaboratorsAsync(getCollaboratorsRequest);
+        if (result.Success)
+            return await Task.FromResult(new AutoCompleteDataProviderResult<Collaborator> { Data = result.Collaborators, TotalCount = result.TotalCount });
+        else
+        {
+            return await Task.FromResult(new AutoCompleteDataProviderResult<Collaborator> { Data = null, TotalCount = 0 });
+        }
     }
 
     private void OnAutoCompleteChanged(Collaborator collaborator)

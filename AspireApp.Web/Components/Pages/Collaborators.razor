@@ -5,6 +5,7 @@
 
 @inject Services.CollaboratorService CollaboratorService
 @inject Services.AppointmentService AppointmentService
+@inject PreloadService PreloadService
 @using AspireApp.Web.Components.Modals
 @using Services.Models
 @using Services.Requests
@@ -17,16 +18,10 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <CardTitle>Colaboradores</CardTitle>
                         <div>
-                            <Button Color="ButtonColor.Primary" @onclick="ShowNewCollaboratorModal" Type="BlazorBootstrap.ButtonType.Link" Disabled="isLoading">Adicionar Colaborador</Button>
+                            <Button Color="ButtonColor.Primary" @onclick="ShowNewCollaboratorModal" Type="BlazorBootstrap.ButtonType.Link" Disabled="!collaboratorsLoaded">Adicionar Colaborador</Button>
                             <Button Color="ButtonColor.Danger" @onclick="ShowConfirmationAsync" Type="BlazorBootstrap.ButtonType.Link" Disabled="selectedCollaborators.Count == 0">Eliminar</Button>
                         </div>                        
                     </div>
-                    @if (isLoading)
-                    {
-                        <div class="d-flex justify-content-center mt-4 mb-4">
-                            <Spinner Type="SpinnerType.Border" />
-                        </div>
-                    }
                     <Grid Id="collaboratorsGrid" @ref="collaboratorsGridRef" TItem="Collaborator"
                           Class="table table-hover table-bordered"
                           DataProvider="ListCollaborators"
@@ -56,7 +51,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <CardTitle>Calendário</CardTitle>
                         <div>
-                            <Button Color="ButtonColor.Primary" @onclick="ShowNewAppointmentModal" Type="BlazorBootstrap.ButtonType.Link">Nova Marcação</Button>
+                            <Button Color="ButtonColor.Primary" @onclick="ShowNewAppointmentModal" Type="BlazorBootstrap.ButtonType.Link" Disabled="!appointmentsLoaded">Nova Marcação</Button>
                         </div>
                     </div>
                     <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
@@ -87,9 +82,11 @@
 
 
 @code {
+    private bool collaboratorsLoaded = false;
+    private bool appointmentsLoaded = false;
+    private bool isLoading = false;
 
-    List<ToastMessage> toastMessages = new List<ToastMessage>();
-    private bool isLoading = true;
+    List<ToastMessage> toastMessages = new List<ToastMessage>();    
 
     //collaborator variables
     private Grid<Collaborator>? collaboratorsGridRef;
@@ -115,18 +112,45 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadCollaborators();
-        await LoadAppointments();
-        isLoading = false;
+        SetLoading(true);
+        await InitializeData();
+    }
+
+    private void SetLoading(bool setOn)
+    {
+        if (setOn && !isLoading)
+        {
+            isLoading = true;
+            PreloadService.Show();
+        }
+        else if (!setOn && isLoading)
+        {
+            isLoading = false;
+            PreloadService.Hide();
+        }
+    }
+
+    private async Task InitializeData()
+    {
+        try
+        {
+            await LoadCollaborators();
+            await LoadAppointments();
+        }
+        catch (Exception ex)
+        {
+            ShowToast(ToastType.Danger, "Error", "Ocorre um erro a carregar os dados.");
+        }
+        finally
+        {
+            if (collaboratorsLoaded && appointmentsLoaded)
+                SetLoading(false);
+        }
     }
 
     private async Task LoadCollaborators()
     {
-        await ListCollaborators(new GridDataProviderRequest<Collaborator>()
-        {
-            PageNumber = 1,
-            PageSize = 10
-        });
+        await ListCollaborators(GetEmptyCollaboratorsRequestRequest());
         StateHasChanged();
     }
 
@@ -152,7 +176,20 @@
         };
 
         var result = await CollaboratorService.ListCollaboratorsAsync(listCollaboratorsRequest);
-        return await Task.FromResult(new GridDataProviderResult<Collaborator> { Data = result.Item1, TotalCount = result.Item2 });
+        if (result.Success)
+        {
+            collaboratorsLoaded = true;
+            return await Task.FromResult(new GridDataProviderResult<Collaborator> { Data = result.Collaborators, TotalCount = result.TotalCount });
+        }        
+        else
+        {
+            ShowToast(ToastType.Danger, "Collaboradores", "Erro a carregar collaboradores");
+            return new GridDataProviderResult<Collaborator>
+                {
+                    Data = new List<Collaborator>(),
+                    TotalCount = 0
+                };
+        }
     }
 
     private async Task RemoveCollaborators()
@@ -182,9 +219,18 @@
             }
             else
             {
-                ShowToast(ToastType.Danger, "Remove Collaborators", response.Message);
+                ShowToast(ToastType.Danger, "Remover Colaborador", response.Message);
             }
         }
+    }
+
+    private GridDataProviderRequest<Collaborator> GetEmptyCollaboratorsRequestRequest()
+    {
+        return new GridDataProviderRequest<Collaborator>()
+            {
+                PageNumber = 1,
+                PageSize = 10
+            };
     }
 
     #region Modals, Dialogs and Toasts
@@ -274,7 +320,8 @@
 
     private async Task LoadAppointments()
     {
-        AppointmentService.ListAppointmentsAsync();
+        await AppointmentService.ListAppointmentsAsync();
+        appointmentsLoaded = true;
     }
 
     void OnSlotRender(SchedulerSlotRenderEventArgs args)
