@@ -5,7 +5,6 @@
 
 @inject Services.CollaboratorService CollaboratorService
 @inject Services.AppointmentService AppointmentService
-@inject PreloadService PreloadService
 @using AspireApp.Web.Components.Modals
 @using Services.Models
 @using Services.Requests
@@ -80,11 +79,11 @@
 
 <Toasts class="p-3" Messages="toastMessages" AutoHide="true" Placement="ToastsPlacement.TopCenter" />
 
-
 @code {
     private bool collaboratorsLoaded = false;
     private bool appointmentsLoaded = false;
     private bool isLoading = false;
+    [Inject] protected PreloadService PreloadService { get; set; }
 
     List<ToastMessage> toastMessages = new List<ToastMessage>();    
 
@@ -112,40 +111,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        SetLoading(true);
-        await InitializeData();
-    }
-
-    private void SetLoading(bool setOn)
-    {
-        if (setOn && !isLoading)
-        {
-            isLoading = true;
-            PreloadService.Show();
-        }
-        else if (!setOn && isLoading)
-        {
-            isLoading = false;
-            PreloadService.Hide();
-        }
-    }
-
-    private async Task InitializeData()
-    {
-        try
-        {
-            await LoadCollaborators();
-            await LoadAppointments();
-        }
-        catch (Exception ex)
-        {
-            ShowToast(ToastType.Danger, "Error", "Ocorre um erro a carregar os dados.");
-        }
-        finally
-        {
-            if (collaboratorsLoaded && appointmentsLoaded)
-                SetLoading(false);
-        }
+        //PreloadService.Show();
+        await LoadCollaborators();
+        await LoadAppointments();
+        // if (collaboratorsLoaded && appointmentsLoaded)
+        //     PreloadService.Hide();
     }
 
     private async Task LoadCollaborators()
