@@ -17,8 +17,8 @@ namespace AspireApp.ApiService.Domain
         public DateTime BeginDate { get; set; }
         public DateTime EndDate { get; set; }
 
-        public Collaborator Collaborator;
-        public AppointmentType AppointmentType;
+        public Collaborator Collaborator { get; set; }
+        public AppointmentType AppointmentType { get; set; }
 
         public Appointment() { }
 

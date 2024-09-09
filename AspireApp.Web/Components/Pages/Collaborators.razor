@@ -8,6 +8,7 @@
 @using AspireApp.Web.Components.Modals
 @using Services.Models
 @using Services.Requests
+@using Services.Results
 
 <div class="container-fluid">
     <div class="row">
@@ -53,7 +54,7 @@
                             <Button Color="ButtonColor.Primary" @onclick="ShowNewAppointmentModal" Type="BlazorBootstrap.ButtonType.Link" Disabled="!appointmentsLoaded">Nova Marcação</Button>
                         </div>
                     </div>
-                    <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
+                    <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender TItem="Event" Data=@events StartProperty="Start" EndProperty="End"
                         TextProperty="Text" SelectedIndex="1"
                         SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender MonthSelect=@OnMonthSelect>
                         <RadzenMonthView />
@@ -73,7 +74,7 @@
                       collaboratorsGridRef="collaboratorsGridRef"/> 
 
 <NewAppointmentModal @ref="newAppointmentModal"
-                     ShowToast="ExternalShowToast" />
+                     ShowToast="ExternalShowToast"/>
 
 <ConfirmDialog @ref="removeCollaboratorsDialog" />
 
@@ -94,20 +95,11 @@
     private HashSet<Collaborator> selectedCollaborators = new();
 
     //scheduler variables
-    RadzenScheduler<Appointment> scheduler;
-    Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
+    RadzenScheduler<Event> scheduler;
     private NewAppointmentModal newAppointmentModal;
+    public IEnumerable<AppointmentType> appointmentTypes = new List<AppointmentType>();
 
-    IList<Appointment> appointments = new List<Appointment>
-    {
-        new Appointment { Start = DateTime.Today.AddDays(-2), End = DateTime.Today.AddDays(-2), Text = "Birthday" },
-        new Appointment { Start = DateTime.Today.AddDays(-11), End = DateTime.Today.AddDays(-10), Text = "Day off" },
-        new Appointment { Start = DateTime.Today.AddDays(-10), End = DateTime.Today.AddDays(-8), Text = "Work from home" },
-        new Appointment { Start = DateTime.Today.AddHours(10), End = DateTime.Today.AddHours(12), Text = "Online meeting" },
-        new Appointment { Start = DateTime.Today.AddHours(10), End = DateTime.Today.AddHours(13), Text = "Skype call" },
-        new Appointment { Start = DateTime.Today.AddHours(14), End = DateTime.Today.AddHours(14).AddMinutes(30), Text = "Dentist appointment" },
-        new Appointment { Start = DateTime.Today.AddDays(1), End = DateTime.Today.AddDays(12), Text = "Vacation" },
-    };
+    private IList<Event> events = new List<Event>();    
 
     protected override async Task OnInitializedAsync()
     {
@@ -290,8 +282,24 @@
 
     private async Task LoadAppointments()
     {
-        await AppointmentService.ListAppointmentsAsync();
-        appointmentsLoaded = true;
+        var appointmentsResult = await AppointmentService.ListAppointmentsAsync();
+        if (appointmentsResult.Success && appointmentsResult.Appointments != null)
+        {
+            events = MapAppointments(appointmentsResult.Appointments);
+            appointmentsLoaded = true;
+        }        
+    }
+
+    private IList<Event> MapAppointments(IEnumerable<Appointment> appointments)
+    {
+        IList<Event> eventsList = new List<Event>();
+
+        foreach (var appointment in appointments)
+        {
+            eventsList.Add(new Event { Start = appointment.BeginDate, End = appointment.EndDate, Text = appointment.AppointmentType?.Name });
+        }
+
+        return eventsList;
     }
 
     void OnSlotRender(SchedulerSlotRenderEventArgs args)
@@ -325,7 +333,7 @@
         await Task.CompletedTask;
     }
 
-    async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<Appointment> args)
+    async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<Event> args)
     {
 
         //await DialogService.OpenAsync<EditAppointmentPage>("Edit Appointment", new Dictionary<string, object> { { "Appointment", args.Data } });
@@ -333,7 +341,7 @@
         await scheduler.Reload();
     }
 
-    void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Appointment> args)
+    void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Event> args)
     {
         // Never call StateHasChanged in AppointmentRender - would lead to infinite loop
 

@@ -4,6 +4,7 @@ using AspireApp.ApiService.Features.Appointments.Queries.Get;
 using AspireApp.ApiService.Features.Appointments.Queries.List;
 using AspireApp.ApiService.Exceptions;
 using MediatR;
+using System.Text.Json;
 
 namespace AspireApp.ApiService.Routes;
 

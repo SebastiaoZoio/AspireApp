@@ -2,8 +2,15 @@
 
 public class Appointment
 {
-    public DateTime Start { get; set; }
-    public DateTime End { get; set; }
+    public Guid Id { get; set; }
 
-    public string Text { get; set; }
+    public Guid CollaboratorId { get; set; }
+
+    public int AppointmentTypeId { get; set; }
+
+    public DateTime BeginDate { get; set; }
+    public DateTime EndDate { get; set; }
+
+    public Collaborator? Collaborator { get; set; }
+    public AppointmentType? AppointmentType { get; set; }
 }
